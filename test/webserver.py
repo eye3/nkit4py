@@ -11,8 +11,8 @@ from consts import spec_str, xml_str
 
 path = os.path.dirname(os.path.realpath(__file__))
 
-spec_file = path + "/data/offers.json";
-xml_path = path + "/data/offers_utf8.xml";
+spec_file = path + "/data/list_of_lists.json";
+xml_path = path + "/data/sample.xml";
 
 f1 = open( spec_file, 'r' )
 f2 = open( xml_path, 'r' )
@@ -23,7 +23,7 @@ xml = f2.read()
 class WebServer(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
-        self.send_header('content-type', 'application/json')
+        self.send_header('content-type', 'application/json; charset=utf-8')
         self.end_headers()
         gen = Xml2VarBuilder(spec)
         gen.feed(xml)

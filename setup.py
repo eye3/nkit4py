@@ -24,16 +24,13 @@ cpp_module = extension.Extension(
         './deps/include',
         './deps/expat-2.1.0/lib',
         './deps/nkit/src',
-        '/usr/include'
+        './src'
     ],
-    library_dirs=[
-        '/usr/local/lib',
-        '/usr/lib'
-    ],
+    library_dirs=[],
     libraries=[
         'rt'
     ],
-    sources=['wrap.cpp',
+    sources=['./src/wrap.cpp',
             './deps/expat-2.1.0/lib/xmlparse.c',
             './deps/expat-2.1.0/lib/xmltok.c',
             './deps/expat-2.1.0/lib/xmlrole.c',
@@ -79,6 +76,6 @@ setup(
 
     keywords='xml2py xml2json xml python object list json fast expat sax nkit nkit4py nkit4nodejs',
 
-    py_modules=['datetime_json_encoder'],
+    py_modules=[],
     ext_modules=[cpp_module]
 )
