@@ -24,16 +24,13 @@ cpp_module = extension.Extension(
         './deps/include',
         './deps/expat-2.1.0/lib',
         './deps/nkit/src',
-        '/usr/include'
+        './src'
     ],
-    library_dirs=[
-        '/usr/local/lib',
-        '/usr/lib'
-    ],
+    library_dirs=[],
     libraries=[
         'rt'
     ],
-    sources=['wrap.cpp',
+    sources=['./src/wrap.cpp',
             './deps/expat-2.1.0/lib/xmlparse.c',
             './deps/expat-2.1.0/lib/xmltok.c',
             './deps/expat-2.1.0/lib/xmlrole.c',
