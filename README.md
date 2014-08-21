@@ -28,7 +28,7 @@ Module supports not only native Expat XML encodings, but also many others
 
 ## On Linux & Mac OS
 
-    npm install nkit4nodejs
+    pip install nkit4py
     
 ## On Windows
 
@@ -36,12 +36,12 @@ Library compiles on MSVS Express version >= 2012.
 For MSVS 2012:
 
     SET VS90COMNTOOLS=%VS100COMNTOOLS% 
-    pip install nkit4nodejs
+    pip install nkit4py
 
 For MSVS 2013:
 
     SET VS90COMNTOOLS=%VS120COMNTOOLS%
-    pip install nkit4nodejs
+    pip install nkit4py
 
 
 # Usage
