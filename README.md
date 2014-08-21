@@ -95,6 +95,8 @@ Suppose, we have this xml string:
 
 ### To build list-of-strings from xml string:
 
+	from nkit4py import Xml2VarBuilder
+
 	# Here mapping is list, described by '/path/to/element' and list-item-description.
 	# List item here is a 'string' scalar.
 	# Scalar definition contains type name and optional default value.
@@ -115,6 +117,8 @@ Result:
     ]
     
 ### To build simple object from xml string (last 'person' xml element will be used):
+
+	from nkit4py import Xml2VarBuilder
 
 	#  Here mapping is object, described by set of mappings, each containing
 	#  key definition and scalar definition.
@@ -168,6 +172,8 @@ Result:
 
 ### To build list-of-objects-with-lists from xml string
  
+	from nkit4py import Xml2VarBuilder
+
 	#  Here mapping is list, described by /path/to/element and list item description.
 	#  List item is described as 'object' sub-mapping.
 	#  This 'object' sub-mapping described by set of mappings, each containing
@@ -243,7 +249,7 @@ Path in mapping specifications are very simple XPath now. Only
     
 paths are supported.
     
-JavaScript object keys get their names from the last element name in the path.
+Python object keys get their names from the last element name in the path.
 If you want to change key names, use this notation:
 
     "/path/to/element -> newKeyName": ...
@@ -253,17 +259,17 @@ If you want to change key names, use this notation:
 
 - /path/with/*/signs/in/any/place
 - options: trim, etc
-- More then one 'mapping' parameters for nkit.Xml2VarBuilder(...) constructor to
-  create more then one JavaScript data structures from one xml string:
+- More then one 'mapping' parameters for Xml2VarBuilder(...) constructor to
+  create more then one Python data structures from one xml string:
 
 
-    var mapping1 = ...;
-    var mapping2 = ...;
-    var builder = nkit.Xml2VarBuilder(mapping1, mapping2);
-    builder.feed(xmlString);
-    var result_list = builder.end();
-    var result1 = result_list[0];
-    var result2 = result_list[1];
+    mapping1 = ...
+    mapping2 = ...
+    builder = Xml2VarBuilder(mapping1, mapping2)
+    builder.feed(xmlString)
+    result_list = builder.end()
+    result1 = result_list[0]
+    result2 = result_list[1]
     
 
 # Author
