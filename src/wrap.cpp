@@ -20,7 +20,6 @@
 #include "Python.h"
 #include <string>
 
-
 typedef nkit::PythonVarBuilder VarBuilder;
 
 /// тип исключений класса PythonXml2VarBuilder
@@ -127,7 +126,9 @@ end_method( PyObject * self, PyObject * /*args*/ )
     return NULL;
   }
 
-  return gen->var();
+  PyObject * result = gen->var();
+  Py_XINCREF(result);
+  return result;
 }
 
 static PyMethodDef xml2var_methods[] =
@@ -192,6 +193,24 @@ static PyMethodDef ModuleMethods[] =
 #define PyMODINIT_FUNC void
 #endif
 
+namespace nkit
+{
+  static PyObject * dt_module_;
+  static PyObject * dt_;
+  static PyObject * utcfromtimestamp_;
+  static PyObject * strptime_;
+
+  PyObject * py_utcfromtimestamp()
+  {
+    return PyObject_CallFunction(utcfromtimestamp_, (char*)"i", 0);
+  }
+
+  PyObject * py_strptime(const char * value, const char * format)
+  {
+    return PyObject_CallFunction(strptime_, (char*)"ss", value, format);
+  }
+}
+
 PyMODINIT_FUNC initnkit4py(void)
 {
   if( -1 == PyType_Ready(&PythonXml2VarBuilderType) )
@@ -209,4 +228,16 @@ PyMODINIT_FUNC initnkit4py(void)
   Py_INCREF(&PythonXml2VarBuilderType);
   PyModule_AddObject( module,
       "Xml2VarBuilder", (PyObject *)&PythonXml2VarBuilderType );
+
+  nkit::dt_module_ = PyImport_ImportModule("datetime");
+  assert(nkit::dt_module_);
+
+  nkit::dt_ = PyObject_GetAttrString(nkit::dt_module_, "datetime");
+  assert(nkit::dt_);
+
+  nkit::utcfromtimestamp_ = PyObject_GetAttrString(nkit::dt_, "utcfromtimestamp");
+  assert(nkit::utcfromtimestamp_);
+
+  nkit::strptime_ = PyObject_GetAttrString(nkit::dt_, "strptime");
+  assert(nkit::strptime_);
 }

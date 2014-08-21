@@ -26,6 +26,9 @@
 
 namespace nkit
 {
+  PyObject * py_strptime(const char * value, const char * format);
+  PyObject * py_utcfromtimestamp();
+
   class PythonPolicy
   {
   private:
@@ -35,26 +38,12 @@ namespace nkit
 
     PythonPolicy()
       : object_(NULL)
-      , dt_module_(NULL)
-      , dt_(NULL)
-      , utcfromtimestamp_(NULL)
-      , strptime_(NULL)
-    {
-      datetime_init();
-    }
+    {}
 
     PythonPolicy(const PythonPolicy & from)
       : object_(from.object_)
-      , dt_module_(from.dt_module_)
-      , dt_(from.dt_)
-      , utcfromtimestamp_(from.utcfromtimestamp_)
-      , strptime_(from.strptime_)
     {
       Py_XINCREF(object_);
-      Py_XINCREF(dt_module_);
-      Py_XINCREF(dt_);
-      Py_XINCREF(utcfromtimestamp_);
-      Py_XINCREF(strptime_);
     }
 
     PythonPolicy & operator = (const PythonPolicy & from)
@@ -62,27 +51,14 @@ namespace nkit
       if (this != &from)
       {
         Py_CLEAR(object_);
-        Py_CLEAR(dt_module_);
-        Py_CLEAR(dt_);
-        Py_CLEAR(utcfromtimestamp_);
-        Py_CLEAR(strptime_);
         object_ = from.object_;
-        dt_module_ = from.dt_module_;
-        dt_ = from.dt_;
-        utcfromtimestamp_ = from.utcfromtimestamp_;
-        strptime_ = from.strptime_;
         Py_XINCREF(object_);
-        Py_XINCREF(dt_module_);
-        Py_XINCREF(dt_);
-        Py_XINCREF(utcfromtimestamp_);
-        Py_XINCREF(strptime_);
       }
       return *this;
     }
 
     ~PythonPolicy()
     {
-      datetime_clear();
       Py_CLEAR(object_);
     }
 
@@ -138,14 +114,12 @@ namespace nkit
       if( value.empty() )
       {
         Py_CLEAR(object_);
-        object_ = PyObject_CallFunction( utcfromtimestamp_, (char*)"i", 0 );
+        object_ = py_utcfromtimestamp();
         assert(object_);
         return;
       }
 
-      PyObject * tmp =
-        PyObject_CallFunction( strptime_, (char*)"ss", value.c_str(), format );
-
+      PyObject * tmp = py_strptime(value.c_str(), format );
       if( NULL == tmp )
       {
         _InitAsUndefined();
@@ -194,29 +168,6 @@ namespace nkit
       NKIT_FORCE_USED(result)
     }
 
-    void datetime_init()
-    {
-      dt_module_ = PyImport_ImportModule("datetime");
-      assert(dt_module_);
-
-      dt_ = PyObject_GetAttrString(dt_module_, "datetime");
-      assert(dt_);
-
-      utcfromtimestamp_ = PyObject_GetAttrString( dt_, "utcfromtimestamp" );
-      assert(utcfromtimestamp_);
-
-      strptime_ = PyObject_GetAttrString(dt_, "strptime");
-      assert(strptime_);
-    }
-
-    void datetime_clear()
-    {
-      Py_CLEAR(strptime_);
-      Py_CLEAR(utcfromtimestamp_);
-      Py_CLEAR(dt_);
-      Py_CLEAR(dt_module_);
-    }
-
     type const & get() const
     {
       return object_;
@@ -225,10 +176,6 @@ namespace nkit
   private:
     type object_;
 
-    PyObject * dt_module_;
-    PyObject * dt_;
-    PyObject * utcfromtimestamp_;
-    PyObject * strptime_;
   };
 
   typedef VarBuilder<PythonPolicy> PythonVarBuilder;
@@ -256,14 +203,14 @@ namespace nkit
     int res = PyDict_SetItemString(locals, "obj", obj);
     if (-1 == res)
     {
-      //CINFO("Coudn't set dict key");
+      Py_DECREF(locals);
       throw "Could not set dict key";
     }
 
     PyObject * run = PyRun_String(STATEMENTS, Py_file_input, globals, locals);
     if ( NULL == run)
     {
-      //CINFO("Coudn't run code statements");
+      Py_DECREF(locals);
       throw "Could not run code statements";
     }
     Py_DECREF(run);

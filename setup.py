@@ -9,7 +9,7 @@ if sys.version_info[0] < 3:
 
 path = os.path.dirname(os.path.realpath(__file__))
 
-with open(path + "/README.md", "U", encoding="utf-8") as r:
+with open(path + "/README", "U", encoding="utf-8") as r:
     readme_text = r.read()
     
 ## OS X non-PPC workaround
@@ -82,19 +82,13 @@ cpp_module = extension.Extension(
 
 setup(
     name='nkit4py',
-    version='0.1.0.dev8',
-    description='nkit C++ library port to Python',
+    version='0.1.0.dev9',
+    description='Simple and fast XML to Python object or JSON converter and filter. Written in C++ using Expat SAX parser.',
     long_description=readme_text,
-
-    # The project's main homepage.
     url='https://github.com/eye3/nkit4py',
-
-    # Author details
     author='Boris T. Darchiev',
     author_email='boris.darchiev@gmail.com',
-
-    # Choose your license
-    license='Apache-2.0',
+    license='Apache-2.0 <http://www.apache.org/licenses/LICENSE-2.0>',
 
     keywords='xml2py xml2json xml python object list json fast expat sax nkit nkit4py nkit4nodejs',
 
