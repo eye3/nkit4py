@@ -1,0 +1,8 @@
+include README.md LICENSE MANIFEST.in setup.py
+recursive-include deps/expat-2.1.0/lib *
+recursive-include deps/yajl-2.0.5/src *
+recursive-include deps/nkit/src *
+recursive-include deps/nkit/3rd/netbsd *
+recursive-include deps/include *
+recursive-include src *
+recursive-include test *

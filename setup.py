@@ -2,8 +2,26 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import extension, setup, find_packages
-import os, platform
+import os, platform, sys
 
+if sys.version_info[0] < 3:
+    from codecs import open
+
+path = os.path.dirname(os.path.realpath(__file__))
+
+with open(path + "/README.md", "U", encoding="utf-8") as r:
+    readme_text = r.read()
+    
+## OS X non-PPC workaround
+# Apple OS X 10.6 with Xcode 4 have Python compiled with PPC but they removed
+# support for compiling with that arch, so we have to override ARCHFLAGS.
+if sys.platform == "darwin" and not os.environ.get("ARCHFLAGS"):
+    compiler_dirn = "/usr/libexec/gcc/darwin"
+    if os.path.exists(compiler_dirn):
+        dir_items = os.listdir(compiler_dirn)
+        if "ppc" not in dir_items:
+            os.environ["ARCHFLAGS"] = "-arch i386 -arch x86_64"
+            
 from distutils.sysconfig import get_config_vars
 
 (opt,) = get_config_vars('OPT')
@@ -11,13 +29,15 @@ if opt:
     os.environ['OPT'] = " ".join(
         flag for flag in opt.split() if flag != '-Wstrict-prototypes'
     )
+    
+cflags = ["-fno-strict-aliasing", ]
 
 define_macros = [('HAVE_EXPAT_CONFIG_H', '1')]
 libraries = []
 os_name = platform.system().lower()
 if os_name.find('win') >= 0:
     define_macros.append(('XML_STATIC', 1))
-else:
+elif os_name.find('linux') >= 0:
     libraries.append('rt')
     
 cpp_module = extension.Extension(
@@ -31,6 +51,7 @@ cpp_module = extension.Extension(
     ],
     library_dirs=[],
     libraries=libraries,
+    extra_compile_args=cflags,
     sources=['./src/wrap.cpp',
             './deps/expat-2.1.0/lib/xmlparse.c',
             './deps/expat-2.1.0/lib/xmltok.c',
@@ -61,9 +82,9 @@ cpp_module = extension.Extension(
 
 setup(
     name='nkit4py',
-    version='0.1.0.dev1',
-    description='A sample Python project',
-    long_description="long_description",
+    version='0.1.0.dev8',
+    description='nkit C++ library port to Python',
+    long_description=readme_text,
 
     # The project's main homepage.
     url='https://github.com/eye3/nkit4py',
