@@ -257,19 +257,19 @@ If you want to change key names, use this notation:
 
 # TODO
 
-- /path/with/*/signs/in/any/place
-- options: trim, etc
-- More then one 'mapping' parameters for Xml2VarBuilder(...) constructor to
-  create more then one Python data structures from one xml string:
-
-
-    mapping1 = ...
-    mapping2 = ...
-    builder = Xml2VarBuilder(mapping1, mapping2)
-    builder.feed(xmlString)
-    result_list = builder.end()
-    result1 = result_list[0]
-    result2 = result_list[1]
+	- /path/with/*/signs/in/any/place
+	- options: trim, etc
+	- More then one 'mapping' parameters for Xml2VarBuilder(...) constructor to
+	  create more then one Python data structures from one xml string:
+	
+	
+	    mapping1 = ...
+	    mapping2 = ...
+	    builder = Xml2VarBuilder(mapping1, mapping2)
+	    builder.feed(xmlString)
+	    result_list = builder.end()
+	    result1 = result_list[0]
+	    result2 = result_list[1]
     
 
 # Author
