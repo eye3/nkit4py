@@ -95,18 +95,15 @@ Suppose, we have this xml string:
 
 ### To build list-of-strings from xml string:
 
-    var nkit = require('nkit4nodejs');
-    
-    // Here mapping is list, described by '/path/to/element' and list-item-description.
-    // List item here is a 'string' scalar.
-    // Scalar definition contains type name and optional default value.
-    var mapping = ["/person/phone", "string"];
-    //var mapping = ["/person/phone", "string|optionalDefaultValue"];
+	# Here mapping is list, described by '/path/to/element' and list-item-description.
+	# List item here is a 'string' scalar.
+	# Scalar definition contains type name and optional default value.
+	mapping = '["/person/phone", "string"]';
+	# mapping = '["/person/phone", "string|optionalDefaultValue"]';
 
-    var builder = new nkit.Xml2VarBuilder(mapping);
-    builder.feed(xmlString); // can be more than one call to feed(xmlChunk) method
-    var result = builder.end();
-    console.log(JSON.stringify(result, null, '  '));
+	builder = Xml2VarBuilder(mapping)
+	builder.feed(xmlString)
+	result = builder.end()
 
 Result:
 
@@ -116,6 +113,157 @@ Result:
       "+122233344553",
       "+122233344554"
     ]
+    
+### To build simple object from xml string (last 'person' xml element will be used):
+
+	#  Here mapping is object, described by set of mappings, each containing
+	#  key definition and scalar definition.
+	#  Keys are described by "/sub/path -> optionalKeyName".
+	#  If optionalKeyName doesn't provided, then last element name in /sub/path
+	#  will be used for key name.
+	#  Scalar definition may have optional "...|defaultValue"
+	mapping = """{
+	    "/person/name -> lastPersonName": "string|Captain Nemo",
+	    "/person/married/@firstTime -> lastPersonIsMarriedFirstTime":
+	        "boolean|True",
+	    "/person/age": "integer"
+	}"""
+	builder = Xml2VarBuilder(mapping)
+	builder.feed(xmlString)
+	result = builder.end()
+
+Result:
+
+	{
+	  "age": 34, 
+	  "lastPersonName": "Boris", 
+	  "lastPersonIsMarriedFirstTime": true
+	}
+
+
+### To build list-of-lists-of-strings from xml string
+	 
+	#  Here mapping is list, described by /path/to/element and list item
+	#  description. List item is described as 'list' sub-mapping, described 
+	#  by sub-path and'string' scalar definition
+	mapping = '["/person", ["/phone", "string"]]';
+
+	builder = Xml2VarBuilder(mapping);
+	builder.feed(xmlString); # can be more than one call to feed(xmlChunk) method
+	result = builder.end();
+
+Result:
+
+	[
+	  [
+	    "+122233344550", 
+	    "+122233344551"
+	  ], 
+	  [
+	    "+122233344553", 
+	    "+122233344554"
+	  ]
+	]
+
+
+### To build list-of-objects-with-lists from xml string
+ 
+	#  Here mapping is list, described by /path/to/element and list item description.
+	#  List item is described as 'object' sub-mapping.
+	#  This 'object' sub-mapping described by set of mappings, each containing
+	#  key definition and sub-mapping or scalar.
+	#  Keys are described by "/sub/path -> optionalKeyName".
+	#  If optionalKeyName doesn't provided, then last element name in "/sub/path"
+	#  will be used for key name
+	#  Scalar definition may have optional "...|defaultValue"
+	#  'datetime' scalar definition MUST contain default value and formatting string
+	mapping = """["/person",
+	    {
+	        "/birthday": "datetime|1970-01-01|%Y-%m-%d",
+	        "/phone -> phones": ["/", "string"],
+	        "/address -> cities": ["/city", "string"],
+	            // same as "/address/city -> cities": ["/", "string"]
+	        "/married/@firstTime -> isMerriedFirstTime": "boolean"
+	    }
+	]"""
+	
+	builder = Xml2VarBuilder(mapping);
+	builder.feed(xmlString); # can be more than one call to feed(xmlChunk) method
+	result = builder.end();
+
+Result:
+
+	[
+	  {
+	    "phones": [
+	      "+122233344550", 
+	      "+122233344551"
+	    ], 
+	    "cities": [
+	      "New York", 
+	      "Boston"
+	    ], 
+	    "birthday": "1970-11-28 00:00:00", 
+	    "isMerriedFirstTime": false
+	  }, 
+	  {
+	    "phones": [
+	      "+122233344553", 
+	      "+122233344554"
+	    ], 
+	    "cities": [
+	      "Moscow", 
+	      "Tula"
+	    ], 
+	    "birthday": "1969-07-16 00:00:00", 
+	    "isMerriedFirstTime": true
+	  }
+	]
+
+# Notes
+
+Possible scalar types:
+
+    - string
+    - integer
+    - number    // with floating point
+    - datetime  // on Windows - without localization support yet
+    - boolean
+    
+Scalar types can be followed by '|' sign and default value
+
+**datetime** type MUST be followed by '|' sign, default value,
+another '|' sign and format string. See 
+[man strptime](http://linux.die.net/man/3/strptime) for datetime formatting
+syntax. Default value of datetime must correspond to format string.
+
+Path in mapping specifications are very simple XPath now. Only
+
+    /element/with/optional/@attribute
+    
+paths are supported.
+    
+JavaScript object keys get their names from the last element name in the path.
+If you want to change key names, use this notation:
+
+    "/path/to/element -> newKeyName": ...
+    "/path/to/element/@attribute -> newKeyName": ...
+
+# TODO
+
+- /path/with/*/signs/in/any/place
+- options: trim, etc
+- More then one 'mapping' parameters for nkit.Xml2VarBuilder(...) constructor to
+  create more then one JavaScript data structures from one xml string:
+
+
+    var mapping1 = ...;
+    var mapping2 = ...;
+    var builder = nkit.Xml2VarBuilder(mapping1, mapping2);
+    builder.feed(xmlString);
+    var result_list = builder.end();
+    var result1 = result_list[0];
+    var result2 = result_list[1];
     
 
 # Author
