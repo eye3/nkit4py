@@ -2,7 +2,5 @@
 
 rm -r build
 
-export ENV_ROOT=$HOME/env
-
-python setup.py install
+python setup.py build
 

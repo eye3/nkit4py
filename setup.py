@@ -13,11 +13,13 @@ if opt:
     )
 
 define_macros = [('HAVE_EXPAT_CONFIG_H', '1')]
-
+libraries = []
 os_name = platform.system().lower()
 if os_name.find('win') >= 0:
     define_macros.append(('XML_STATIC', 1))
-
+else:
+    libraries.append('rt')
+    
 cpp_module = extension.Extension(
     'nkit4py',
     define_macros = define_macros,
@@ -28,9 +30,7 @@ cpp_module = extension.Extension(
         './src'
     ],
     library_dirs=[],
-    libraries=[
-        'rt'
-    ],
+    libraries=libraries,
     sources=['./src/wrap.cpp',
             './deps/expat-2.1.0/lib/xmlparse.c',
             './deps/expat-2.1.0/lib/xmltok.c',
