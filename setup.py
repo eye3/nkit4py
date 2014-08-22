@@ -9,7 +9,7 @@ if sys.version_info[0] < 3:
 
 path = os.path.dirname(os.path.realpath(__file__))
 
-with open(path + "/README", "U", encoding="utf-8") as r:
+with open(path + "/README.md", "U", encoding="utf-8") as r:
     readme_text = r.read()
     
 ## OS X non-PPC workaround

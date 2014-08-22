@@ -198,11 +198,17 @@ namespace nkit
   static PyObject * dt_module_;
   static PyObject * dt_;
   static PyObject * utcfromtimestamp_;
+  static PyObject * fromtimestamp_;
   static PyObject * strptime_;
 
-  PyObject * py_utcfromtimestamp()
+  PyObject * py_utcfromtimestamp(time_t  timestamp)
   {
-    return PyObject_CallFunction(utcfromtimestamp_, (char*)"i", 0);
+    return PyObject_CallFunction(utcfromtimestamp_, (char*)"i", timestamp);
+  }
+
+  PyObject * py_fromtimestamp(time_t  timestamp)
+  {
+    return PyObject_CallFunction(fromtimestamp_, (char*)"i", timestamp);
   }
 
   PyObject * py_strptime(const char * value, const char * format)
@@ -237,6 +243,9 @@ PyMODINIT_FUNC initnkit4py(void)
 
   nkit::utcfromtimestamp_ = PyObject_GetAttrString(nkit::dt_, "utcfromtimestamp");
   assert(nkit::utcfromtimestamp_);
+
+  nkit::fromtimestamp_ = PyObject_GetAttrString(nkit::dt_, "fromtimestamp");
+  assert(nkit::fromtimestamp_);
 
   nkit::strptime_ = PyObject_GetAttrString(nkit::dt_, "strptime");
   assert(nkit::strptime_);

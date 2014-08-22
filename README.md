@@ -1,4 +1,5 @@
-# Introduction
+Introduction
+============
 
 nkit4nodejs - is a [nkit](https://github.com/eye3/nkit.git) C++ library port to 
 Python.
@@ -24,13 +25,16 @@ memory when parsing huge XML files.
 Module supports not only native Expat XML encodings, but also many others
 (see /deps/nkit/src/vx/encodings_inc_gen.cpp)
 
-# Installation
+Installation
+============
 
-## On Linux & Mac OS
+On Linux & Mac OS
+-----------------
 
     pip install nkit4py
     
-## On Windows
+On Windows
+----------
 
 Library compiles on MSVS Express version >= 2012.
 For MSVS 2012:
@@ -44,7 +48,8 @@ For MSVS 2013:
     pip install nkit4py
 
 
-# Usage
+Usage
+=====
 
 Suppose, we have this xml string:
 
@@ -93,7 +98,8 @@ Suppose, we have this xml string:
     </any_name>
 
 
-### To build list-of-strings from xml string:
+To build list-of-strings from xml string:
+-----------------------------------------
 
 	from nkit4py import Xml2VarBuilder
 
@@ -116,7 +122,8 @@ Result:
       "+122233344554"
     ]
     
-### To build simple object from xml string (last 'person' xml element will be used):
+To build simple object from xml string (last 'person' xml element will be used):
+--------------------------------------------------------------------------------
 
 	from nkit4py import Xml2VarBuilder
 
@@ -145,7 +152,8 @@ Result:
 	}
 
 
-### To build list-of-lists-of-strings from xml string
+To build list-of-lists-of-strings from xml string:
+--------------------------------------------------
 	 
 	#  Here mapping is list, described by /path/to/element and list item
 	#  description. List item is described as 'list' sub-mapping, described 
@@ -170,7 +178,8 @@ Result:
 	]
 
 
-### To build list-of-objects-with-lists from xml string
+To build list-of-objects-with-lists from xml string:
+----------------------------------------------------
  
 	from nkit4py import Xml2VarBuilder
 
@@ -226,14 +235,15 @@ Result:
 	  }
 	]
 
-# Notes
+Notes
+=====
 
 Possible scalar types:
 
     - string
     - integer
-    - number    // with floating point
-    - datetime  // on Windows - without localization support yet
+    - number
+    - datetime
     - boolean
     
 Scalar types can be followed by '|' sign and default value
@@ -245,9 +255,28 @@ syntax. Default value of datetime must correspond to format string.
 
 Path in mapping specifications are very simple XPath now. Only
 
-    /element/with/optional/@attribute
+    /path/to/element
+    /path/to/element/with/optional/@attribute
     
-paths are supported.
+paths are supported. Also there is a limited support of
+
+    /paths/to/element/with/*/sign
+    
+'*' sign must be used only in the last sub-mapping paths. Examples:
+	
+	1. ["/person", ["/*", "string"]]  // valid
+
+	2. ["/*", ["/address", "string"]] // invalid
+
+	3. ['/person', {
+			"/*": "string",
+			"/age": "integer"
+		}]                            // valid
+
+	4. ['/*', {
+			"/phone": "string",
+			"/age": "integer"
+		}]                            // invalid
     
 Python object keys get their names from the last element name in the path.
 If you want to change key names, use this notation:
@@ -255,9 +284,10 @@ If you want to change key names, use this notation:
     "/path/to/element -> newKeyName": ...
     "/path/to/element/@attribute -> newKeyName": ...
 
-# TODO
 
-	- /path/with/*/signs/in/any/place
+TODO
+====
+
 	- options: trim, etc
 	- More then one 'mapping' parameters for Xml2VarBuilder(...) constructor to
 	  create more then one Python data structures from one xml string:
@@ -272,7 +302,8 @@ If you want to change key names, use this notation:
 	    result2 = result_list[1]
     
 
-# Author
+Author
+======
 
 Boris T. Darchiev (boris.darchiev@gmail.com)
 

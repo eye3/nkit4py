@@ -27,7 +27,8 @@
 namespace nkit
 {
   PyObject * py_strptime(const char * value, const char * format);
-  PyObject * py_utcfromtimestamp();
+  PyObject * py_utcfromtimestamp(time_t  timestamp);
+  PyObject * py_fromtimestamp(time_t  timestamp);
 
   class PythonPolicy
   {
@@ -111,23 +112,23 @@ namespace nkit
     void _InitAsDatetimeFormat( std::string const & value,
         const char * format )
     {
-      if( value.empty() )
-      {
-        Py_CLEAR(object_);
-        object_ = py_utcfromtimestamp();
-        assert(object_);
-        return;
-      }
-
-      PyObject * tmp = py_strptime(value.c_str(), format );
-      if( NULL == tmp )
+#if defined(_WIN32) || defined(_WIN64)
+      struct tm _tm =
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0};
+#else
+      struct tm _tm =
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+#endif
+      if (value.empty() || NKIT_STRPTIME(value.c_str(), format, &_tm) == NULL)
       {
         _InitAsUndefined();
         return;
       }
 
+      time_t time = mktime(&_tm);
       Py_CLEAR(object_);
-      object_ = tmp;
+      object_ = py_fromtimestamp(time);
+      assert(object_);
     }
 
     void _InitAsList()

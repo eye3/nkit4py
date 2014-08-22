@@ -105,7 +105,7 @@ if json.dumps(result) != json.dumps(etalon):
 #  'datetime' scalar definition MUST contain default value and formatting string
 mapping = """["/person",
     {
-        "/birthday": "datetime|1970-01-01|%Y-%m-%d",
+        "/birthday": "datetime|Fri, 22 Aug 2014 13:59:06 +0000|%a, %d %b %Y %H:%M:%S %z",
         "/phone -> phones": ["/", "string"],
         "/address -> cities": ["/city", "string"],
             // same as "/address/city -> cities": ["/", "string"]
@@ -121,14 +121,14 @@ pring_json(result)
 etalon = [
     {
         "phones": [ '+122233344550', '+122233344551' ],
+        "birthday": datetime(1979, 3, 28, 12, 13, 14),
         "cities": [ 'New York', 'Boston' ],
-        "birthday": datetime(1970, 11, 28),
         "isMerriedFirstTime": False
     },
     {
         "phones": [ '+122233344553', '+122233344554' ],
+        "birthday": datetime(1970, 8, 31, 2, 3, 4),
         "cities": [ 'Moscow', 'Tula' ],
-        "birthday": datetime(1969, 7, 16),
         "isMerriedFirstTime": True
          }
 ];
