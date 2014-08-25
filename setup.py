@@ -82,7 +82,7 @@ cpp_module = extension.Extension(
 
 setup(
     name='nkit4py',
-    version='0.1.0.dev13',
+    version='0.1.0.dev14',
     description='Simple and fast XML to Python object or JSON converter and filter. Written in C++ using Expat SAX parser.',
     long_description=readme_text,
     url='https://github.com/eye3/nkit4py',
