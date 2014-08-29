@@ -53,8 +53,11 @@ For MSVS 2013:
 For new pedantic version of pip (>= v1.4)
 -----------------------------------------
 
-If 'pip install nkit4py' does not work, then you probably have 'pip' version >= v1.4.
-In such case use:
+If 'pip install nkit4py' doesn't work and prints error like
+
+    "Could not find a version that satisfies the requirement nkit4py..."
+
+then you probably have 'pip' version >= v1.4. In such case use:
 
     pip install --pre nkit4py
 
