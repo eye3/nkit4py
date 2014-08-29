@@ -41,11 +41,13 @@ Library compiles on MSVS Express version >= 2012.
 For MSVS 2012:
 
     SET VS90COMNTOOLS=%VS100COMNTOOLS%
+
     pip install nkit4py
 
 For MSVS 2013:
 
     SET VS90COMNTOOLS=%VS120COMNTOOLS%
+
     pip install nkit4py
 
 For new pedantic version of pip (>= v1.4)
