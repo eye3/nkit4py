@@ -40,7 +40,7 @@ On Windows
 Library compiles on MSVS Express version >= 2012.
 For MSVS 2012:
 
-    SET VS90COMNTOOLS=%VS100COMNTOOLS%
+    SET VS90COMNTOOLS=%VS110COMNTOOLS%
 
     pip install nkit4py
 
