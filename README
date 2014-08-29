@@ -56,7 +56,7 @@ For new pedantic version of pip (>= v1.4)
 If 'pip install nkit4py' does not work, then you probably have 'pip' version >= v1.4.
 In such case use:
 
-pip install --pre nkit4py
+    pip install --pre nkit4py
 
 Usage
 =====
