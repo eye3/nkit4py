@@ -24,6 +24,22 @@
 #include <Python.h>
 #include <string>
 
+#if ((PY_MAJOR_VERSION == 2) && (PY_MINOR_VERSION <=4))
+#define NKIT_PYTHON_OLDER_THEN_2_5
+#endif
+
+
+#if ((PY_MAJOR_VERSION == 2) && (PY_MINOR_VERSION <= 5))
+#define NKIT_PYTHON_OLDER_THEN_2_6
+#endif
+
+#if NKIT_PYTHON_OLDER_THEN_2_6
+#define NKIT_PYTHON_LONG_FROM_INT64(v) PyLong_FromLong(static_cast<long>(v))
+#else
+#define NKIT_PYTHON_LONG_FROM_INT64(v) PyLong_FromLongLong(v)
+#endif
+
+
 namespace nkit
 {
   PyObject * py_strptime(const char * value, const char * format);
@@ -65,7 +81,7 @@ namespace nkit
 
     void _InitAsBoolean( std::string const & value )
     {
-      int64_t i = nkit::bool_cast(value);
+      int32_t i = nkit::bool_cast(value);
 
       Py_CLEAR(object_);
       object_ = PyBool_FromLong(i);
@@ -77,7 +93,7 @@ namespace nkit
       int64_t i = !value.empty() ? NKIT_STRTOLL( value.c_str(), NULL, 10 ) : 0;
 
       Py_CLEAR(object_);
-      object_ = PyLong_FromLong(i);
+      object_ = NKIT_PYTHON_LONG_FROM_INT64(i);
       assert(object_);
     }
 
