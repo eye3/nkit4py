@@ -85,7 +85,7 @@ cpp_module = extension.Extension(
 
 setup(
     name='nkit4py',
-    version='0.1.0rc8',
+    version='0.1.0rc9',
     description='Simple and fast XML to Python object or JSON converter and filter. Written in C++ using Expat SAX parser.',
     long_description=readme_text,
     url='https://github.com/eye3/nkit4py',
@@ -93,7 +93,7 @@ setup(
     author_email='boris.darchiev@gmail.com',
     license='Apache-2.0 <http://www.apache.org/licenses/LICENSE-2.0>',
 
-    keywords='xml2py xml2json xml python object list json fast expat sax nkit nkit4py nkit4nodejs',
+    keywords='xml2py xml2json xml python object list json xpath fast expat sax nkit nkit4py nkit4nodejs',
 
     py_modules=[],
     ext_modules=[cpp_module]
