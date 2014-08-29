@@ -28,7 +28,33 @@ Module supports not only native Expat XML encodings, but also many others
 Installation
 ============
 
-pip install nkit4py
+
+On Linux & Mac OS
+-----------------
+
+    pip install nkit4py
+
+On Windows
+----------
+
+Library compiles on MSVS Express version >= 2012.
+For MSVS 2012:
+
+    SET VS90COMNTOOLS=%VS100COMNTOOLS%
+    pip install nkit4py
+
+For MSVS 2013:
+
+    SET VS90COMNTOOLS=%VS120COMNTOOLS%
+    pip install nkit4py
+
+For new pedantic version of pip (>= v1.4)
+-----------------------------------------
+
+If 'pip install nkit4py' does not work, then you probably have 'pip' version >= v1.4.
+In such case use:
+
+pip install --pre nkit4py
 
 Usage
 =====

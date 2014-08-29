@@ -47,6 +47,14 @@ For MSVS 2013:
     SET VS90COMNTOOLS=%VS120COMNTOOLS%
     pip install nkit4py
 
+For new pedantic version of pip (>= v1.4)
+-----------------------------------------
+
+If 'pip install nkit4py' does not work, then you probably have 'pip' version >= v1.4.
+In such case use:
+
+pip install --pre nkit4py
+
 
 Usage
 =====
