@@ -30,13 +30,16 @@ if opt:
         flag for flag in opt.split() if flag != '-Wstrict-prototypes'
     )
     
-cflags = ["-fno-strict-aliasing", ]
+cflags = ["-fno-strict-aliasing"]
 
 define_macros = [('HAVE_EXPAT_CONFIG_H', '1')]
 libraries = []
 os_name = platform.system().lower()
 if os_name.find('win') >= 0:
     define_macros.append(('XML_STATIC', 1))
+    define_macros.append(('_CRT_SECURE_NO_WARNINGS', 1))
+    libraries.append('Advapi32')
+    cflags = ["/EHsc", "/MD"]
 elif os_name.find('linux') >= 0:
     libraries.append('rt')
     
@@ -82,7 +85,7 @@ cpp_module = extension.Extension(
 
 setup(
     name='nkit4py',
-    version='0.1.0.dev22',
+    version='0.1.0.rc1',
     description='Simple and fast XML to Python object or JSON converter and filter. Written in C++ using Expat SAX parser.',
     long_description=readme_text,
     url='https://github.com/eye3/nkit4py',
