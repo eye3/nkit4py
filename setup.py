@@ -79,7 +79,23 @@ cpp_module = extension.Extension(
             "./deps/nkit/src/vx/encodings.cpp",
             "./deps/nkit/src/vx/vx.cpp",
             "./deps/nkit/3rd/netbsd/strptime.cpp"
-             ],
+             ]
+)
+
+setup(
+    name='nkit4py',
+    version='1.0.33rc1',
+    description='Simple and fast XML to Python object or JSON converter and filter. Written in C++ using Expat SAX parser.',
+    long_description=readme_text,
+    url='https://github.com/eye3/nkit4py',
+    author='Boris T. Darchiev',
+    author_email='boris.darchiev@gmail.com',
+    license='Apache-2.0 <http://www.apache.org/licenses/LICENSE-2.0>',
+
+    keywords='xml2py xml2json xml python object list json xpath fast expat sax nkit nkit4py nkit4nodejs',
+
+    py_modules=[],
+    ext_modules=[cpp_module],
     classifiers=[
           'Development Status :: 4 - Beta',
           'Environment :: Console',
@@ -92,20 +108,4 @@ cpp_module = extension.Extension(
           'Programming Language :: C++',
           'Topic :: Text Processing :: Markup :: XML'
           ]
-)
-
-setup(
-    name='nkit4py',
-    version='1.0.32rc1',
-    description='Simple and fast XML to Python object or JSON converter and filter. Written in C++ using Expat SAX parser.',
-    long_description=readme_text,
-    url='https://github.com/eye3/nkit4py',
-    author='Boris T. Darchiev',
-    author_email='boris.darchiev@gmail.com',
-    license='Apache-2.0 <http://www.apache.org/licenses/LICENSE-2.0>',
-
-    keywords='xml2py xml2json xml python object list json xpath fast expat sax nkit nkit4py nkit4nodejs',
-
-    py_modules=[],
-    ext_modules=[cpp_module]
 )
