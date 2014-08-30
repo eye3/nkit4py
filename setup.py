@@ -31,11 +31,10 @@ if opt:
     )
     
 cflags = ["-fno-strict-aliasing"]
-
 define_macros = [('HAVE_EXPAT_CONFIG_H', '1')]
 libraries = []
 os_name = platform.system().lower()
-if os_name.find('win') >= 0:
+if os_name.startswith('win'):
     define_macros.append(('XML_STATIC', 1))
     define_macros.append(('_CRT_SECURE_NO_WARNINGS', 1))
     libraries.append('Advapi32')
@@ -80,12 +79,24 @@ cpp_module = extension.Extension(
             "./deps/nkit/src/vx/encodings.cpp",
             "./deps/nkit/src/vx/vx.cpp",
             "./deps/nkit/3rd/netbsd/strptime.cpp"
-             ]
+             ],
+    classifiers=[
+          'Development Status :: 4 - Beta',
+          'Environment :: Console',
+          'Intended Audience :: Developers',
+          'Intended Audience :: System Administrators',
+          'License :: OSI Approved :: Apache Software License',
+          'Operating System :: MacOS :: MacOS X',
+          'Operating System :: Microsoft :: Windows',
+          'Operating System :: POSIX',
+          'Programming Language :: C++',
+          'Topic :: Text Processing :: Markup :: XML'
+          ]
 )
 
 setup(
     name='nkit4py',
-    version='0.1.0rc9',
+    version='1.0.32rc1',
     description='Simple and fast XML to Python object or JSON converter and filter. Written in C++ using Expat SAX parser.',
     long_description=readme_text,
     url='https://github.com/eye3/nkit4py',
