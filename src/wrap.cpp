@@ -14,10 +14,10 @@
    limitations under the License.
 */
 
+#include "Python.h"
 #include "python_var_builder.h"
 #include "nkit/vx.h"
 #include "nkit/types.h"
-#include "Python.h"
 #include <string>
 
 typedef nkit::PythonVarBuilder VarBuilder;

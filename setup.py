@@ -84,7 +84,7 @@ cpp_module = extension.Extension(
 
 setup(
     name='nkit4py',
-    version='1.0.33rc1',
+    version='1.0.34rc1',
     description='Simple and fast XML to Python object or JSON converter and filter. Written in C++ using Expat SAX parser.',
     long_description=readme_text,
     url='https://github.com/eye3/nkit4py',
@@ -92,20 +92,32 @@ setup(
     author_email='boris.darchiev@gmail.com',
     license='Apache-2.0 <http://www.apache.org/licenses/LICENSE-2.0>',
 
-    keywords='xml2py xml2json xml python object list json xpath fast expat sax nkit nkit4py nkit4nodejs',
+    keywords='xml python object list json convertor filter fast expat sax xpath nkit nkit4py xml2py xml2json',
 
     py_modules=[],
     ext_modules=[cpp_module],
     classifiers=[
           'Development Status :: 4 - Beta',
           'Environment :: Console',
+          'Environment :: MacOS X',
+          'Environment :: No Input/Output (Daemon)',
+          'Environment :: Win32 (MS Windows)',
           'Intended Audience :: Developers',
           'Intended Audience :: System Administrators',
+          'Intended Audience :: Other Audience',
+          'Intended Audience :: Education',
           'License :: OSI Approved :: Apache Software License',
+          'Operating System :: MacOS',
           'Operating System :: MacOS :: MacOS X',
+          'Operating System :: Microsoft',
           'Operating System :: Microsoft :: Windows',
           'Operating System :: POSIX',
+          'Operating System :: POSIX :: Linux',
           'Programming Language :: C++',
-          'Topic :: Text Processing :: Markup :: XML'
+          'Programming Language :: Cython',
+          'Topic :: Text Processing',
+          'Topic :: Text Processing :: Filters',
+          'Topic :: Text Processing :: Markup :: XML',
+          'Topic :: Software Development :: Libraries :: Python Modules'
           ]
 )
