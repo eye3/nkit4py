@@ -9,8 +9,12 @@ if sys.version_info[0] < 3:
 
 path = os.path.dirname(os.path.realpath(__file__))
 
-with open(path + "/README", "U", encoding="utf-8") as r:
-    readme_text = r.read()
+def read_readme():
+    f = open(os.path.join(os.path.dirname(__file__), 'README'))
+    try:
+        return f.read()
+    finally:
+        f.close()
     
 ## OS X non-PPC workaround
 # Apple OS X 10.6 with Xcode 4 have Python compiled with PPC but they removed
@@ -84,9 +88,9 @@ cpp_module = extension.Extension(
 
 setup(
     name='nkit4py',
-    version='1.0.34rc1',
+    version='1.0.34rc2',
     description='Simple and fast XML to Python object or JSON converter and filter. Written in C++ using Expat SAX parser.',
-    long_description=readme_text,
+    long_description=read_readme(),
     url='https://github.com/eye3/nkit4py',
     author='Boris T. Darchiev',
     author_email='boris.darchiev@gmail.com',
@@ -114,7 +118,6 @@ setup(
           'Operating System :: POSIX',
           'Operating System :: POSIX :: Linux',
           'Programming Language :: C++',
-          'Programming Language :: Cython',
           'Topic :: Text Processing',
           'Topic :: Text Processing :: Filters',
           'Topic :: Text Processing :: Markup :: XML',

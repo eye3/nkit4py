@@ -7,8 +7,6 @@ from datetime_json_encoder import DatetimeEncoder
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from nkit4py import Xml2VarBuilder
 
-from consts import spec_str, xml_str
-
 path = os.path.dirname(os.path.realpath(__file__))
 
 xml_path = path + "/data/sample.xml";
@@ -37,5 +35,5 @@ class WebServer(BaseHTTPRequestHandler):
                         ensure_ascii=False, cls=DatetimeEncoder )
         self.wfile.write(j)
 
-webserver = HTTPServer(('127.0.0.1', 8080 ), WebServer)
+webserver = HTTPServer(('0.0.0.0', 8080 ), WebServer)
 webserver.serve_forever()

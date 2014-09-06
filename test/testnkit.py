@@ -7,11 +7,11 @@ from nkit4py import Xml2VarBuilder
 
 class DatetimeEncoder(json.JSONEncoder):
     def default( self, obj ):
-        if  isinstance( obj, datetime ):
+        if isinstance( obj, datetime ):
             return obj.strftime("%Y-%m-%d %H:%M:%S")
-        if  isinstance( obj, date ):
+        if isinstance( obj, date ):
             return obj.strftime("%Y-%m-%d")
-        if  isinstance( obj, time ):
+        if isinstance( obj, time ):
             return obj.strftime("%H:%M:%S")
 
         return json.JSONEncoder.default( self, obj )
@@ -53,7 +53,7 @@ if json.dumps(result) != json.dumps(etalon):
 #  build simple object from xml string (last 'person' element will be used)
 # 
 #  Here mapping is object, described by set of mappings, each containing
-#  key definition and scalar definition.
+#  key definition and scalar definition.˛
 #  Keys are described by "/sub/path -> optionalKeyName".
 #  If optionalKeyName doesn't provided, then last element name in /sub/path
 #  will be used for key name.
