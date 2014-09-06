@@ -64,65 +64,68 @@ Usage
 
 Suppose, we have this xml string:
 
-	<?xml version="1.0"?>
-	<any_name>
-		<person>
-			<phone>+122233344550</phone>
-			<name>Jack</name>
-			<phone>+122233344551</phone>
-			<age>33</age>
-			<married firstTime="No">Yes</married>
-			<birthday>Wed, 28 Mar 1979 12:13:14 +0300</birthday>
-			<address>
-				<city>New York</city>
-				<street>Park Ave</street>
-				<buildingNo>1</buildingNo>
-				<flatNo>1</flatNo>
-			</address>
-			<address>
-				<city>Boston</city>
-				<street>Centre St</street>
-				<buildingNo>33</buildingNo>
-				<flatNo>24</flatNo>
-			</address>
-		</person>
-		<person>
-			<phone>+122233344553</phone>
-			<name>Boris</name>
-			<phone>+122233344554</phone>
-			<age>34</age>
-			<married firstTime="Yes">Yes</married>
-			<birthday>Mon, 31 Aug 1970 02:03:04 +0300</birthday>
-			<address>
-				<city>Moscow</city>
-				<street>Kahovka</street>
-				<buildingNo>1</buildingNo>
-				<flatNo>2</flatNo>
-			</address>
-			<address>
-				<city>Tula</city>
-				<street>Lenina</street>
-				<buildingNo>3</buildingNo>
-				<flatNo>78</flatNo>
-			</address>
-		</person>
-	</any_name>
-
+```xml
+<?xml version="1.0"?>
+<any_name>
+    <person>
+        <phone>+122233344550</phone>
+        <name>Jack</name>
+        <phone>+122233344551</phone>
+        <age>33</age>
+        <married firstTime="No">Yes</married>
+        <birthday>Wed, 28 Mar 1979 12:13:14 +0300</birthday>
+        <address>
+            <city>New York</city>
+            <street>Park Ave</street>
+            <buildingNo>1</buildingNo>
+            <flatNo>1</flatNo>
+        </address>
+        <address>
+            <city>Boston</city>
+            <street>Centre St</street>
+            <buildingNo>33</buildingNo>
+            <flatNo>24</flatNo>
+        </address>
+    </person>
+    <person>
+        <phone>+122233344553</phone>
+        <name>Boris</name>
+        <phone>+122233344554</phone>
+        <age>34</age>
+        <married firstTime="Yes">Yes</married>
+        <birthday>Mon, 31 Aug 1970 02:03:04 +0300</birthday>
+        <address>
+            <city>Moscow</city>
+            <street>Kahovka</street>
+            <buildingNo>1</buildingNo>
+            <flatNo>2</flatNo>
+        </address>
+        <address>
+            <city>Tula</city>
+            <street>Lenina</street>
+            <buildingNo>3</buildingNo>
+            <flatNo>78</flatNo>
+        </address>
+    </person>
+</any_name>
+```
 
 To build list-of-strings from xml string:
 -----------------------------------------
 
-	from nkit4py import Xml2VarBuilder
+```python
+from nkit4py import Xml2VarBuilder
 
-	# Here mapping is list, described by '/path/to/element' and list-item-description.
-	# List item here is a 'string' scalar.
-	# Scalar definition contains type name and optional default value.
-	mapping = '["/person/phone", "string"]';
-	# mapping = '["/person/phone", "string|optionalDefaultValue"]';
+# Here mapping is list, described by '/path/to/element' and list-item-description.
+# List item here is a 'string' scalar.
+# Scalar definition contains type name and optional default value.
+mapping = '["/person/phone", "string"]';
+# mapping = '["/person/phone", "string|optionalDefaultValue"]';
 
-	builder = Xml2VarBuilder(mapping)
-	builder.feed(xmlString)
-	result = builder.end()
+builder = Xml2VarBuilder(mapping)
+builder.feed(xmlString)
+result = builder.end()
+```
 
 Result:
 
@@ -136,23 +139,25 @@ Result:
 To build simple object from xml string (last 'person' xml element will be used):
 --------------------------------------------------------------------------------
 
-	from nkit4py import Xml2VarBuilder
+```python
+from nkit4py import Xml2VarBuilder
 
-	#  Here mapping is object, described by set of mappings, each containing
-	#  key definition and scalar definition.
-	#  Keys are described by "/sub/path -> optionalKeyName".
-	#  If optionalKeyName doesn't provided, then last element name in /sub/path
-	#  will be used for key name.
-	#  Scalar definition may have optional "...|defaultValue"
-	mapping = """{
-	    "/person/name -> lastPersonName": "string|Captain Nemo",
-	    "/person/married/@firstTime -> lastPersonIsMarriedFirstTime":
-	        "boolean|True",
-	    "/person/age": "integer"
-	}"""
-	builder = Xml2VarBuilder(mapping)
-	builder.feed(xmlString)
-	result = builder.end()
+#  Here mapping is object, described by set of mappings, each containing
+#  key definition and scalar definition.
+#  Keys are described by "/sub/path -> optionalKeyName".
+#  If optionalKeyName doesn't provided, then last element name in /sub/path
+#  will be used for key name.
+#  Scalar definition may have optional "...|defaultValue"
+mapping = """{
+    "/person/name -> lastPersonName": "string|Captain Nemo",
+    "/person/married/@firstTime -> lastPersonIsMarriedFirstTime":
+        "boolean|True",
+    "/person/age": "integer"
+}"""
+builder = Xml2VarBuilder(mapping)
+builder.feed(xmlString)
+result = builder.end()
+```
 
 Result:
 
@@ -166,14 +171,16 @@ Result:
 To build list-of-lists-of-strings from xml string:
 --------------------------------------------------
 	 
-	#  Here mapping is list, described by /path/to/element and list item
-	#  description. List item is described as 'list' sub-mapping, described 
-	#  by sub-path and'string' scalar definition
-	mapping = '["/person", ["/phone", "string"]]';
+```python
+#  Here mapping is list, described by /path/to/element and list item
+#  description. List item is described as 'list' sub-mapping, described 
+#  by sub-path and'string' scalar definition
+mapping = '["/person", ["/phone", "string"]]';
 
-	builder = Xml2VarBuilder(mapping);
-	builder.feed(xmlString); # can be more than one call to feed(xmlChunk) method
-	result = builder.end();
+builder = Xml2VarBuilder(mapping);
+builder.feed(xmlString); # can be more than one call to feed(xmlChunk) method
+result = builder.end();
+```
 
 Result:
 
@@ -192,30 +199,32 @@ Result:
 To build list-of-objects-with-lists from xml string:
 ----------------------------------------------------
  
-	from nkit4py import Xml2VarBuilder
+```python
+from nkit4py import Xml2VarBuilder
 
-	#  Here mapping is list, described by /path/to/element and list item description.
-	#  List item is described as 'object' sub-mapping.
-	#  This 'object' sub-mapping described by set of mappings, each containing
-	#  key definition and sub-mapping or scalar.
-	#  Keys are described by "/sub/path -> optionalKeyName".
-	#  If optionalKeyName doesn't provided, then last element name in "/sub/path"
-	#  will be used for key name
-	#  Scalar definition may have optional "...|defaultValue"
-	#  'datetime' scalar definition MUST contain default value and formatting string
-	mapping = """["/person",
-	    {
-	        "/birthday": "datetime|Fri, 22 Aug 2014 13:59:06 +0000|%a, %d %b %Y %H:%M:%S %z",
-	        "/phone -> phones": ["/", "string"],
-	        "/address -> cities": ["/city", "string"],
-	            // same as "/address/city -> cities": ["/", "string"]
-	        "/married/@firstTime -> isMerriedFirstTime": "boolean"
-	    }
-	]"""
-	
-	builder = Xml2VarBuilder(mapping);
-	builder.feed(xmlString); # can be more than one call to feed(xmlChunk) method
-	result = builder.end();
+#  Here mapping is list, described by /path/to/element and list item description.
+#  List item is described as 'object' sub-mapping.
+#  This 'object' sub-mapping described by set of mappings, each containing
+#  key definition and sub-mapping or scalar.
+#  Keys are described by "/sub/path -> optionalKeyName".
+#  If optionalKeyName doesn't provided, then last element name in "/sub/path"
+#  will be used for key name
+#  Scalar definition may have optional "...|defaultValue"
+#  'datetime' scalar definition MUST contain default value and formatting string
+mapping = """["/person",
+    {
+        "/birthday": "datetime|Fri, 22 Aug 2014 13:59:06 +0000|%a, %d %b %Y %H:%M:%S %z",
+        "/phone -> phones": ["/", "string"],
+        "/address -> cities": ["/city", "string"],
+            // same as "/address/city -> cities": ["/", "string"]
+        "/married/@firstTime -> isMerriedFirstTime": "boolean"
+    }
+]"""
+
+builder = Xml2VarBuilder(mapping);
+builder.feed(xmlString); # can be more than one call to feed(xmlChunk) method
+result = builder.end();
+```
 
 Result:
 
@@ -251,43 +260,43 @@ To build list-of-objects from big XML source, reading it chunk by chunk
 
 This example requires Tornado server to be installed (pip install tornado)
 
-    ```python
-    import nkit4py, json
-    import tornado, tornado.ioloop
-    from tornado.web import RequestHandler, Application
-    from tornado.httpclient import HTTPRequest, AsyncHTTPClient
-    
-    class XmlDownloader:
-        def __init__(self, ):
-            self.http = AsyncHTTPClient()
-    
-        @tornado.gen.coroutine
-        def run(self, url, mapping):
-            builder = nkit4py.Xml2VarBuilder(mapping)
-            def on_chunk(chunk): # this callback will be called many times
-                builder.feed(chunk)
-            yield self.http.fetch(HTTPRequest(url, streaming_callback=on_chunk))
-            raise tornado.gen.Return(builder.end())
-    
-    class MainHandler(RequestHandler):
-        @tornado.gen.coroutine
-        def get(self):
-            downloader = XmlDownloader()
-            result = yield downloader.run("http://rt.com/rss/", """
-                ["/channel/item", {
-                    "/title": "string",
-                    "/content:encoded": "string",
-                    "/description": "string"
-                }]
-            """)
-            self.set_header("Content-Type", "application/json; charset=utf-8")
-            self.write(json.dumps(result, indent=2, ensure_ascii=False))
-    
-    if __name__ == "__main__":
-        app = Application([tornado.web.url(r"/", MainHandler),])
-        app.listen(8888)
-        tornado.ioloop.IOLoop.current().start()
-    ```
+```python
+import nkit4py, json
+import tornado, tornado.ioloop
+from tornado.web import RequestHandler, Application
+from tornado.httpclient import HTTPRequest, AsyncHTTPClient
+
+class XmlDownloader:
+    def __init__(self, ):
+        self.http = AsyncHTTPClient()
+
+    @tornado.gen.coroutine
+    def run(self, url, mapping):
+        builder = nkit4py.Xml2VarBuilder(mapping)
+        def on_chunk(chunk): # this callback will be called many times
+            builder.feed(chunk)
+        yield self.http.fetch(HTTPRequest(url, streaming_callback=on_chunk))
+        raise tornado.gen.Return(builder.end())
+
+class MainHandler(RequestHandler):
+    @tornado.gen.coroutine
+    def get(self):
+        downloader = XmlDownloader()
+        result = yield downloader.run("http://rt.com/rss/", """
+            ["/channel/item", {
+                "/title": "string",
+                "/content:encoded": "string",
+                "/description": "string"
+            }]
+        """)
+        self.set_header("Content-Type", "application/json; charset=utf-8")
+        self.write(json.dumps(result, indent=2, ensure_ascii=False))
+
+if __name__ == "__main__":
+    app = Application([tornado.web.url(r"/", MainHandler),])
+    app.listen(8888)
+    tornado.ioloop.IOLoop.current().start()
+```
 
 
 Notes
