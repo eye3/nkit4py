@@ -129,12 +129,14 @@ result = builder.end()
 
 Result:
 
-    [
-      "+122233344550",
-      "+122233344551",
-      "+122233344553",
-      "+122233344554"
-    ]
+```json
+[
+  "+122233344550",
+  "+122233344551",
+  "+122233344553",
+  "+122233344554"
+]
+```
     
 To build simple object from xml string (last 'person' xml element will be used):
 --------------------------------------------------------------------------------
@@ -161,11 +163,13 @@ result = builder.end()
 
 Result:
 
-	{
-	  "age": 34, 
-	  "lastPersonName": "Boris", 
-	  "lastPersonIsMarriedFirstTime": true
-	}
+```json
+{
+  "age": 34, 
+  "lastPersonName": "Boris", 
+  "lastPersonIsMarriedFirstTime": true
+}
+```
 
 
 To build list-of-lists-of-strings from xml string:
@@ -184,17 +188,18 @@ result = builder.end();
 
 Result:
 
-	[
-	  [
-	    "+122233344550", 
-	    "+122233344551"
-	  ], 
-	  [
-	    "+122233344553", 
-	    "+122233344554"
-	  ]
-	]
-
+```json
+[
+  [
+    "+122233344550", 
+    "+122233344551"
+  ], 
+  [
+    "+122233344553", 
+    "+122233344554"
+  ]
+]
+```
 
 To build list-of-objects-with-lists from xml string:
 ----------------------------------------------------
@@ -228,32 +233,34 @@ result = builder.end();
 
 Result:
 
-	[
-	  {
-	    "phones": [
-	      "+122233344550", 
-	      "+122233344551"
-	    ], 
-	    "cities": [
-	      "New York", 
-	      "Boston"
-	    ], 
-	    "birthday": "1970-11-28 00:00:00", 
-	    "isMerriedFirstTime": false
-	  }, 
-	  {
-	    "phones": [
-	      "+122233344553", 
-	      "+122233344554"
-	    ], 
-	    "cities": [
-	      "Moscow", 
-	      "Tula"
-	    ], 
-	    "birthday": "1969-07-16 00:00:00", 
-	    "isMerriedFirstTime": true
-	  }
-	]
+```json
+[
+  {
+    "phones": [
+      "+122233344550", 
+      "+122233344551"
+    ], 
+    "cities": [
+      "New York", 
+      "Boston"
+    ], 
+    "birthday": "1970-11-28 00:00:00", 
+    "isMerriedFirstTime": false
+  }, 
+  {
+    "phones": [
+      "+122233344553", 
+      "+122233344554"
+    ], 
+    "cities": [
+      "Moscow", 
+      "Tula"
+    ], 
+    "birthday": "1969-07-16 00:00:00", 
+    "isMerriedFirstTime": true
+  }
+]
+```
 	
 To build list-of-objects from big XML source, reading it chunk by chunk
 ------------------------------------------------------------------------
