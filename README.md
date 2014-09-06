@@ -251,7 +251,7 @@ To build list-of-objects from big XML source, reading it chunk by chunk
 
 This example requires Tornado server to be installed (pip install tornado)
 
-    <code class="python">
+    ```python
     import nkit4py, json
     import tornado, tornado.ioloop
     from tornado.web import RequestHandler, Application
@@ -287,7 +287,7 @@ This example requires Tornado server to be installed (pip install tornado)
         app = Application([tornado.web.url(r"/", MainHandler),])
         app.listen(8888)
         tornado.ioloop.IOLoop.current().start()
-    </code>
+    ```
 
 
 Notes
