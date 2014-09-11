@@ -37,6 +37,7 @@ On Windows
 ----------
 
 Library compiles on MSVS Express version >= 2012.
+
 For MSVS 2012:
 
     SET VS90COMNTOOLS=%VS110COMNTOOLS%
@@ -47,16 +48,11 @@ For MSVS 2013:
     SET VS90COMNTOOLS=%VS120COMNTOOLS%
     pip install nkit4py
 
-For new pedantic version of pip (>= v1.4)
------------------------------------------
 
-If 'pip install nkit4py' doesn't work and prints error like
+Stable release
+--------------
 
-    "Could not find a version that satisfies the requirement nkit4py..."
-
-then you probably have 'pip' version >= v1.4. In such case use:
-
-    pip install --pre nkit4py
+pip install nkit4py==1.0.36
 
 
 Usage
@@ -379,3 +375,5 @@ Author
 Boris T. Darchiev (boris.darchiev@gmail.com)
 
 On github: https://github.com/eye3
+
+Any feedback or pull request are welcome!
