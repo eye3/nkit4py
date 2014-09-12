@@ -20,11 +20,13 @@
 #include "nkit/types.h"
 #include <string>
 
+//------------------------------------------------------------------------------
 typedef nkit::PythonVarBuilder VarBuilder;
 
-/// тип исключений класса PythonXml2VarBuilder
+/// exception
 static PyObject * PythonXml2VarBuilderError;
 
+//------------------------------------------------------------------------------
 template<typename T>
 struct SharedPtrHolder
 {
@@ -32,14 +34,16 @@ struct SharedPtrHolder
   NKIT_SHARED_PTR(T) ptr_;
 };
 
+//------------------------------------------------------------------------------
 struct PythonXml2VarBuilder
 {
   PyObject_HEAD;
   SharedPtrHolder< nkit::Xml2VarBuilder< VarBuilder > > * gen_;
 };
 
-static PyObject*
-CreatePythonXml2VarBuilder( PyTypeObject * type, PyObject * args, PyObject *)
+//------------------------------------------------------------------------------
+static PyObject* CreatePythonXml2VarBuilder(
+    PyTypeObject * type, PyObject * args, PyObject *)
 {
   const char* target_spec = NULL;
   int result = PyArg_ParseTuple( args, "s", &target_spec );
@@ -61,28 +65,32 @@ CreatePythonXml2VarBuilder( PyTypeObject * type, PyObject * args, PyObject *)
   if( NULL != self )
   {
     std::string error("");
-    nkit::Xml2VarBuilder< VarBuilder >::Ptr builder_ptr =
+    nkit::Xml2VarBuilder< VarBuilder >::Ptr builder =
         nkit::Xml2VarBuilder< VarBuilder >::Create( target_spec, &error );
-    self->gen_ =
-        new SharedPtrHolder< nkit::Xml2VarBuilder< VarBuilder > >(builder_ptr);
-    if(!self->gen_)
+    if(!builder)
     {
       PyErr_SetString( PythonXml2VarBuilderError, error.c_str() );
       return NULL;
     }
+    self->gen_ =
+        new SharedPtrHolder< nkit::Xml2VarBuilder< VarBuilder > >(builder);
   }
 
   return (PyObject *)self;
 }
 
+//------------------------------------------------------------------------------
 static void DeletePythonXml2VarBuilder(PyObject * self)
 {
-  delete ((PythonXml2VarBuilder *)self)->gen_;
+  SharedPtrHolder< nkit::Xml2VarBuilder< VarBuilder > > * ptr =
+        ((PythonXml2VarBuilder *)self)->gen_;
+  if (ptr)
+    delete ptr;
   self->ob_type->tp_free(self);
 }
 
-static PyObject *
-feed_method( PyObject * self, PyObject * args )
+//------------------------------------------------------------------------------
+static PyObject * feed_method( PyObject * self, PyObject * args )
 {
   const char* request = NULL;
   Py_ssize_t size = 0;
@@ -99,11 +107,11 @@ feed_method( PyObject * self, PyObject * args )
     return NULL;
   }
 
-  nkit::Xml2VarBuilder< VarBuilder >::Ptr gen =
+  nkit::Xml2VarBuilder< VarBuilder >::Ptr builder =
       ((PythonXml2VarBuilder *)self)->gen_->ptr_;
 
   std::string error("");
-  if(!gen->Feed( request, size, false, &error ))
+  if(!builder->Feed( request, size, false, &error ))
   {
     PyErr_SetString( PythonXml2VarBuilderError, error.c_str() );
     return NULL;
@@ -112,25 +120,26 @@ feed_method( PyObject * self, PyObject * args )
   Py_RETURN_NONE;
 }
 
-static PyObject *
-end_method( PyObject * self, PyObject * /*args*/ )
+//------------------------------------------------------------------------------
+static PyObject * end_method( PyObject * self, PyObject * /*args*/ )
 {
-  nkit::Xml2VarBuilder< VarBuilder >::Ptr gen =
+  nkit::Xml2VarBuilder< VarBuilder >::Ptr builder =
         ((PythonXml2VarBuilder *)self)->gen_->ptr_;
 
   std::string empty("");
   std::string error("");
-  if(!gen->Feed( empty.c_str(), empty.size(), true, &error ))
+  if(!builder->Feed( empty.c_str(), empty.size(), true, &error ))
   {
     PyErr_SetString( PythonXml2VarBuilderError, error.c_str() );
     return NULL;
   }
 
-  PyObject * result = gen->var();
+  PyObject * result = builder->var();
   Py_XINCREF(result);
   return result;
 }
 
+//------------------------------------------------------------------------------
 static PyMethodDef xml2var_methods[] =
 {
   { "feed", feed_method, METH_VARARGS, "Usage: builder.feed()\n"
@@ -142,6 +151,7 @@ static PyMethodDef xml2var_methods[] =
   { NULL, NULL, 0, NULL } /* Sentinel */
 };
 
+//------------------------------------------------------------------------------
 static PyTypeObject PythonXml2VarBuilderType =
 {
   PyVarObject_HEAD_INIT(NULL, 0)
@@ -184,6 +194,7 @@ static PyTypeObject PythonXml2VarBuilderType =
   CreatePythonXml2VarBuilder,//tp_new,
 };
 
+//------------------------------------------------------------------------------
 static PyMethodDef ModuleMethods[] =
 {
   { NULL, NULL, 0, NULL } /* Sentinel */
@@ -193,6 +204,7 @@ static PyMethodDef ModuleMethods[] =
 #define PyMODINIT_FUNC void
 #endif
 
+//------------------------------------------------------------------------------
 namespace nkit
 {
   static PyObject * dt_module_;
@@ -217,6 +229,7 @@ namespace nkit
   }
 }
 
+//------------------------------------------------------------------------------
 PyMODINIT_FUNC initnkit4py(void)
 {
   if( -1 == PyType_Ready(&PythonXml2VarBuilderType) )

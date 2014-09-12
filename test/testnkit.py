@@ -4,6 +4,8 @@
 import json, os, sys
 from datetime import *
 from nkit4py import Xml2VarBuilder
+import copy
+
 
 class DatetimeEncoder(json.JSONEncoder):
     def default( self, obj ):
@@ -16,11 +18,15 @@ class DatetimeEncoder(json.JSONEncoder):
 
         return json.JSONEncoder.default( self, obj )
 
+
 def to_json(v):
     return json.dumps(v, indent=2, ensure_ascii=False, cls=DatetimeEncoder)
 
+
 def pring_json(v):
+    print "-------------------------------------"
     print to_json(v)
+
 
 path = os.path.dirname(os.path.realpath(__file__))
 
@@ -43,7 +49,7 @@ etalon = [ '+122233344550',
            '+122233344553',
            '+122233344554' ];
 
-if json.dumps(result) != json.dumps(etalon):
+if result != etalon:
     pring_json(result)
     pring_json(etalon)
     print "Error #1"
@@ -67,7 +73,6 @@ mapping = """{
 builder = Xml2VarBuilder(mapping)
 builder.feed(xmlString)
 result = builder.end()
-pring_json(result)
 
 # ------------------------------------------------------------------------------
 #  build list-of-lists-of-strings from xml string
@@ -80,12 +85,11 @@ mapping = '["/person", ["/phone", "string"]]';
 builder = Xml2VarBuilder(mapping);
 builder.feed(xmlString); # can be more than one call to feed(xmlChunk) method
 result = builder.end();
-pring_json(result)
 
 etalon = [ [ '+122233344550', '+122233344551' ],
     [ '+122233344553', '+122233344554' ] ];
 
-if json.dumps(result) != json.dumps(etalon):
+if result != etalon:
     pring_json(result)
     pring_json(etalon)
     print "Error #2"
@@ -109,6 +113,7 @@ mapping = """["/person",
         "/phone -> phones": ["/", "string"],
         "/address -> cities": ["/city", "string"],
             // same as "/address/city -> cities": ["/", "string"]
+        "/photos/* -> photos": ["/", "string"],
         "/married/@firstTime -> isMerriedFirstTime": "boolean"
     }
 ]"""
@@ -116,24 +121,25 @@ mapping = """["/person",
 builder = Xml2VarBuilder(mapping);
 builder.feed(xmlString); # can be more than one call to feed(xmlChunk) method
 result = builder.end();
-pring_json(result)
 
 etalon = [
     {
+        "isMerriedFirstTime": False,
         "phones": [ '+122233344550', '+122233344551' ],
+        "photos": ["img1","img2"],
         "birthday": datetime(1979, 3, 28, 12, 13, 14),
         "cities": [ 'New York', 'Boston' ],
-        "isMerriedFirstTime": False
     },
     {
+        "isMerriedFirstTime": True,
         "phones": [ '+122233344553', '+122233344554' ],
+        "photos": ["img3","img4"],
         "birthday": datetime(1970, 8, 31, 2, 3, 4),
         "cities": [ 'Moscow', 'Tula' ],
-        "isMerriedFirstTime": True
-         }
+    }
 ];
 
-if to_json(result) != to_json(etalon):
+if result != etalon:
     pring_json(result)
     pring_json(etalon)
     print "Error #3"

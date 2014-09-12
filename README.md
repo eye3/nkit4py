@@ -52,7 +52,7 @@ For MSVS 2013:
 Stable release
 --------------
 
-pip install nkit4py==1.0.36
+pip install nkit4py==1.0.38
 
 
 Usage
@@ -67,6 +67,10 @@ Suppose, we have this xml string:
         <phone>+122233344550</phone>
         <name>Jack</name>
         <phone>+122233344551</phone>
+		<photos>
+            <photo>img1</photo>
+            <photo>img2</photo>
+        </photos>
         <age>33</age>
         <married firstTime="No">Yes</married>
         <birthday>Wed, 28 Mar 1979 12:13:14 +0300</birthday>
@@ -87,6 +91,10 @@ Suppose, we have this xml string:
         <phone>+122233344553</phone>
         <name>Boris</name>
         <phone>+122233344554</phone>
+		<photos>
+            <photo>img3</photo>
+            <photo>img4</photo>
+        </photos>
         <age>34</age>
         <married firstTime="Yes">Yes</married>
         <birthday>Mon, 31 Aug 1970 02:03:04 +0300</birthday>
@@ -218,6 +226,7 @@ mapping = """["/person",
         "/phone -> phones": ["/", "string"],
         "/address -> cities": ["/city", "string"],
             // same as "/address/city -> cities": ["/", "string"]
+        "/photos/* -> photos": ["/", "string"],
         "/married/@firstTime -> isMerriedFirstTime": "boolean"
     }
 ]"""
@@ -235,7 +244,8 @@ Result:
     "phones": [
       "+122233344550", 
       "+122233344551"
-    ], 
+    ],
+    "photos": ["img1","img2"],
     "cities": [
       "New York", 
       "Boston"
@@ -247,7 +257,8 @@ Result:
     "phones": [
       "+122233344553", 
       "+122233344554"
-    ], 
+    ],
+    "photos": ["img3","img4"],
     "cities": [
       "Moscow", 
       "Tula"
@@ -344,7 +355,7 @@ paths are supported. Also there is a limited support of
 			"/phone": "string",
 			"/age": "integer"
 		}]                            // invalid
-    
+
 Python object keys get their names from the last element name in the path.
 If you want to change key names, use this notation:
 
