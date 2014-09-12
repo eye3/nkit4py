@@ -52,7 +52,7 @@ For MSVS 2013:
 Stable release
 --------------
 
-pip install nkit4py==1.0.38
+pip install nkit4py==1.0.39
 
 
 Usage
@@ -335,26 +335,10 @@ Path in mapping specifications are very simple XPath now. Only
 
     /path/to/element
     /path/to/element/with/optional/@attribute
-    
-paths are supported. Also there is a limited support of
-
     /paths/to/element/with/*/sign
-    
-'*' sign must be used only in the last sub-mapping paths. Examples:
-	
-	1. ["/person", ["/*", "string"]]  // valid
+    /paths/to/element/with/*/sign/with/optional/@attribute
 
-	2. ["/*", ["/address", "string"]] // invalid
-
-	3. ['/person', {
-			"/*": "string",
-			"/age": "integer"
-		}]                            // valid
-
-	4. ['/*', {
-			"/phone": "string",
-			"/age": "integer"
-		}]                            // invalid
+paths are supported.
 
 Python object keys get their names from the last element name in the path.
 If you want to change key names, use this notation:

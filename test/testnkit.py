@@ -113,7 +113,7 @@ mapping = """["/person",
         "/phone -> phones": ["/", "string"],
         "/address -> cities": ["/city", "string"],
             // same as "/address/city -> cities": ["/", "string"]
-        "/photos/* -> photos": ["/", "string"],
+        "/photos": ["/*", "string"],
         "/married/@firstTime -> isMerriedFirstTime": "boolean"
     }
 ]"""
@@ -126,7 +126,7 @@ etalon = [
     {
         "isMerriedFirstTime": False,
         "phones": [ '+122233344550', '+122233344551' ],
-        "photos": ["img1","img2"],
+        "photos": ["img1","img2","img3"],
         "birthday": datetime(1979, 3, 28, 12, 13, 14),
         "cities": [ 'New York', 'Boston' ],
     },
