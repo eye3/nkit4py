@@ -52,7 +52,7 @@ For MSVS 2013:
 Stable release
 --------------
 
-pip install nkit4py==1.0.39
+pip install nkit4py==1.0.40
 
 
 Usage
