@@ -52,7 +52,7 @@ For MSVS 2013:
 Stable release
 --------------
 
-pip install nkit4py==1.0.40
+pip install nkit4py==1.0.41
 
 
 Usage
@@ -70,6 +70,7 @@ Suppose, we have this xml string:
 		<photos>
             <photo>img1</photo>
             <photo>img2</photo>
+            <ph>img3</ph>
         </photos>
         <age>33</age>
         <married firstTime="No">Yes</married>
@@ -226,7 +227,7 @@ mapping = """["/person",
         "/phone -> phones": ["/", "string"],
         "/address -> cities": ["/city", "string"],
             // same as "/address/city -> cities": ["/", "string"]
-        "/photos/* -> photos": ["/", "string"],
+        "/photos": ["/*", "string"],
         "/married/@firstTime -> isMerriedFirstTime": "boolean"
     }
 ]"""
@@ -245,7 +246,7 @@ Result:
       "+122233344550", 
       "+122233344551"
     ],
-    "photos": ["img1","img2"],
+    "photos": ["img1","img2","img3"],
     "cities": [
       "New York", 
       "Boston"
