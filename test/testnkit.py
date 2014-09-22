@@ -165,7 +165,8 @@ etalon = [
     "married": "Yes",
     "phone": "+122233344551",
     "birthday": "Wed, 28 Mar 1979 12:13:14 +0300",
-    "address": "\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t"
+    "address": "\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t",
+    "empty": ""
   },
   {
     "name": "Boris",
@@ -174,7 +175,8 @@ etalon = [
     "married": "Yes",
     "phone": "+122233344554",
     "birthday": "Mon, 31 Aug 1970 02:03:04 +0300",
-    "address": "\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t"
+    "address": "\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t\t\n\t\t",
+    "empty": ""
   }
 ]
 
@@ -208,7 +210,33 @@ etalon = [
 if result != etalon:
     pring_json(result)
     pring_json(etalon)
-    print "Error #4"
+    print "Error #5"
+    sys.exit(1)
+
+
+# ------------------------------------------------------------------------------
+mapping = """["/person", {
+    "/empty": "string"
+    }
+]"""
+
+builder = Xml2VarBuilder(mapping)
+builder.feed(xmlString) # can be more than one call to feed(xmlChunk) method
+result = builder.end()
+
+etalon = [
+  {
+    "empty": ""
+  },
+  {
+    "empty": ""
+  }
+]
+
+if result != etalon:
+    pring_json(result)
+    pring_json(etalon)
+    print "Error #6"
     sys.exit(1)
 
 
