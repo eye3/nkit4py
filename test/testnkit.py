@@ -184,5 +184,33 @@ if result != etalon:
     print "Error #4"
     sys.exit(1)
 
+
+# ------------------------------------------------------------------------------
+mapping = """["/person", {
+   	"/key_for_default_value": "string|default_value",
+    "/non_existing_key": "string"
+    }
+]"""
+
+builder = Xml2VarBuilder(mapping)
+builder.feed(xmlString) # can be more than one call to feed(xmlChunk) method
+result = builder.end()
+
+etalon = [
+  {
+    "key_for_default_value": "default_value"
+  },
+  {
+    "key_for_default_value": "default_value"
+  }
+]
+
+if result != etalon:
+    pring_json(result)
+    pring_json(etalon)
+    print "Error #4"
+    sys.exit(1)
+
+
 print "ok"
 sys.exit(0)

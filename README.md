@@ -52,7 +52,7 @@ For MSVS 2013:
 Stable release
 --------------
 
-pip install nkit4py==1.0.41
+pip install nkit4py==1.0.42
 
 
 Usage
@@ -123,9 +123,8 @@ from nkit4py import Xml2VarBuilder
 
 # Here mapping is list, described by '/path/to/element' and list-item-description.
 # List item here is a 'string' scalar.
-# Scalar definition contains type name and optional default value.
+# Scalar definition contains type - "string".
 mapping = '["/person/phone", "string"]';
-# mapping = '["/person/phone", "string|optionalDefaultValue"]';
 
 builder = Xml2VarBuilder(mapping)
 builder.feed(xmlString)

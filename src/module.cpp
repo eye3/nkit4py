@@ -197,8 +197,6 @@ namespace nkit
 
   typedef VarBuilder<PythonPolicy> PythonVarBuilder;
 
-  std::string pyobj_to_json(PythonVarBuilder::type const & obj);
-
 } // namespace nkit
 
 //------------------------------------------------------------------------------
@@ -219,7 +217,7 @@ struct SharedPtrHolder
 struct PythonXml2VarBuilder
 {
   PyObject_HEAD;
-  SharedPtrHolder< nkit::Xml2VarBuilder< VarBuilder > > * gen_;
+  SharedPtrHolder< nkit::Xml2VarBuilder< VarBuilder > > * holder_;
 };
 
 //------------------------------------------------------------------------------
@@ -253,7 +251,7 @@ static PyObject* CreatePythonXml2VarBuilder(
       PyErr_SetString( PythonXml2VarBuilderError, error.c_str() );
       return NULL;
     }
-    self->gen_ =
+    self->holder_ =
         new SharedPtrHolder< nkit::Xml2VarBuilder< VarBuilder > >(builder);
   }
 
@@ -264,7 +262,7 @@ static PyObject* CreatePythonXml2VarBuilder(
 static void DeletePythonXml2VarBuilder(PyObject * self)
 {
   SharedPtrHolder< nkit::Xml2VarBuilder< VarBuilder > > * ptr =
-        ((PythonXml2VarBuilder *)self)->gen_;
+        ((PythonXml2VarBuilder *)self)->holder_;
   if (ptr)
     delete ptr;
   self->ob_type->tp_free(self);
@@ -289,7 +287,7 @@ static PyObject * feed_method( PyObject * self, PyObject * args )
   }
 
   nkit::Xml2VarBuilder< VarBuilder >::Ptr builder =
-      ((PythonXml2VarBuilder *)self)->gen_->ptr_;
+      ((PythonXml2VarBuilder *)self)->holder_->ptr_;
 
   std::string error("");
   if(!builder->Feed( request, size, false, &error ))
@@ -305,7 +303,7 @@ static PyObject * feed_method( PyObject * self, PyObject * args )
 static PyObject * end_method( PyObject * self, PyObject * /*args*/ )
 {
   nkit::Xml2VarBuilder< VarBuilder >::Ptr builder =
-        ((PythonXml2VarBuilder *)self)->gen_->ptr_;
+        ((PythonXml2VarBuilder *)self)->holder_->ptr_;
 
   std::string empty("");
   std::string error("");
@@ -409,17 +407,7 @@ namespace nkit
     return PyObject_CallFunction(strptime_, (char*)"ss", value, format);
   }
 
-  const char STATEMENTS[] =
-            "import json\n"
-            "from datetime import *\n"
-            "import sys\n"
-            "sys.path.append( './python' )\n"
-            "from datetime_json_encoder import DatetimeEncoder\n"
-            "json_obj = json.dumps( obj, indent=2, "
-            "                ensure_ascii=False, cls=DatetimeEncoder )\n";
-
-
-  std::string pyobj_to_json(PythonVarBuilder::type const & obj)
+  std::string pyobj_to_json(PyObject * obj)
   {
     PyObject * main_module = PyImport_AddModule("__main__");
     PyObject * globals = PyModule_GetDict(main_module);
@@ -433,15 +421,19 @@ namespace nkit
       throw "Could not set dict key";
     }
 
-    PyObject * run = PyRun_String(STATEMENTS, Py_file_input, globals, locals);
-    if ( NULL == run)
+    PyObject * run = PyRun_String(
+            "import nkit4py\n"
+            "json_str = json.dumps(obj, indent=2, ensure_ascii=False,"
+            "                      cls=nkit4py.DatetimeJSONEncoder)\n",
+             Py_file_input, globals, locals);
+    if (NULL == run)
     {
       Py_DECREF(locals);
       throw "Could not run code statements";
     }
     Py_DECREF(run);
 
-    char * str = PyString_AsString(PyDict_GetItemString(locals, "json_obj"));
+    char * str = PyString_AsString(PyDict_GetItemString(locals, "json_str"));
     std::string result(str);
     Py_DECREF(locals);
 
@@ -452,6 +444,20 @@ namespace nkit
   {
     return pyobj_to_json(object_);
   }
+
+  const char DatetimeJSONEncoderClass[] =
+        "import json\n"
+        "import datetime\n"
+        "class DatetimeJSONEncoder(json.JSONEncoder):\n"
+        "    def default( self, obj ):\n"
+        "        if  isinstance( obj, datetime.datetime ):\n"
+        "            return obj.strftime(\"%Y-%m-%d %H:%M:%S\")\n"
+        "        if  isinstance( obj, datetime.date ):\n"
+        "            return obj.strftime(\"%Y-%m-%d\")\n"
+        "        if  isinstance( obj, datetime.time ):\n"
+        "            return obj.strftime(\"%H:%M:%S\")\n"
+        "        return json.JSONEncoder.default( self, obj )\n"
+        ;
 
 } // namespace nkit
 
@@ -488,4 +494,30 @@ PyMODINIT_FUNC initnkit4py(void)
 
   nkit::strptime_ = PyObject_GetAttrString(nkit::dt_, "strptime");
   assert(nkit::strptime_);
+
+  // class DatetimeJSONEncoder
+  PyObject * main_module = PyImport_AddModule("__main__");
+  PyObject * globals = PyModule_GetDict(main_module);
+  PyObject * locals = PyDict_New();
+  PyObject * run = PyRun_String(nkit::DatetimeJSONEncoderClass,
+      Py_file_input, globals, locals);
+  if ( NULL == run)
+  {
+    Py_DECREF(locals);
+    throw "Could not run code statements";
+  }
+  Py_DECREF(run);
+  PyObject * cls = PyDict_GetItemString(locals, "DatetimeJSONEncoder");
+  PyModule_AddObject( module, "DatetimeJSONEncoder", cls );
+
+//  PyDict_SetItemString(locals, "obj", PyDict_New());
+//  run = PyRun_String(
+//            "import nkit4py\n"
+//            "json_str = json.dumps(obj, indent=2, ensure_ascii=False,"
+//            "                      cls=nkit4py.DatetimeJSONEncoder)\n",
+//             Py_file_input, globals, locals);
+//  char * str = PyString_AsString(PyDict_GetItemString(locals, "json_str"));
+//  if (str)
+//    CINFO(str);
+  Py_DECREF(locals);
 }
