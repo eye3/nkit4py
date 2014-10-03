@@ -25,14 +25,24 @@ memory when parsing huge XML files.
 Module supports not only native Expat XML encodings, but also many others
 (see /deps/nkit/src/vx/encodings_inc_gen.cpp)
 
-Installation
-============
+With version 2.0 you can:
+
+- Create multiple Python structures from one XML source. (in version 2.0)
+
+- With extra options you can tune some aspects of conversion:
+	- trim out white spaces
+	- explicitly define white space characters
+	- choose unicode or string type for text scalar values
+
+
+Installation (version 1.0)
+==========================
 
 On Linux & Mac OS
 -----------------
 
     pip install nkit4py
-    
+
 On Windows
 ----------
 
@@ -41,11 +51,13 @@ Library compiles on MSVS Express version >= 2012.
 For MSVS 2012:
 
     SET VS90COMNTOOLS=%VS110COMNTOOLS%
+
     pip install nkit4py
 
 For MSVS 2013:
 
     SET VS90COMNTOOLS=%VS120COMNTOOLS%
+
     pip install nkit4py
 
 
@@ -53,6 +65,12 @@ Stable release
 --------------
 
 pip install nkit4py==1.0.44
+
+
+Installation (version 2.0 - beta)
+=================================
+
+pip install nkit4py --pre
 
 
 Usage
@@ -63,6 +81,10 @@ Suppose, we have this xml string:
 ```xml
 <?xml version="1.0"?>
 <any_name>
+	<academy>
+		<title>Delhi Academy Of Medical Sciences</title>
+		<link>http://www.damsdelhi.com/dams.php</link>
+	</academy>
     <person>
         <phone>+122233344550</phone>
         <name>Jack</name>
@@ -124,11 +146,12 @@ from nkit4py import Xml2VarBuilder
 # Here mapping is list, described by '/path/to/element' and list-item-description.
 # List item here is a 'string' scalar.
 # Scalar definition contains type - "string".
-mapping = '["/person/phone", "string"]';
+mapping = ["/person/phone", "string"];
 
-builder = Xml2VarBuilder(mapping)
+builder = Xml2VarBuilder({"any_mapping_name": mapping})
 builder.feed(xmlString)
 result = builder.end()
+result = result["any_mapping_name"]
 ```
 
 Result:
@@ -154,15 +177,16 @@ from nkit4py import Xml2VarBuilder
 #  If optionalKeyName doesn't provided, then last element name in /sub/path
 #  will be used for key name.
 #  Scalar definition may have optional "...|defaultValue"
-mapping = """{
+mapping = {
     "/person/name -> lastPersonName": "string|Captain Nemo",
     "/person/married/@firstTime -> lastPersonIsMarriedFirstTime":
         "boolean|True",
     "/person/age": "integer"
-}"""
-builder = Xml2VarBuilder(mapping)
+}
+builder = Xml2VarBuilder({"any_mapping_name": mapping})
 builder.feed(xmlString)
 result = builder.end()
+result = result["any_mapping_name"]
 ```
 
 Result:
@@ -183,11 +207,12 @@ To build list-of-lists-of-strings from xml string:
 #  Here mapping is list, described by /path/to/element and list item
 #  description. List item is described as 'list' sub-mapping, described 
 #  by sub-path and'string' scalar definition
-mapping = '["/person", ["/phone", "string"]]';
+mapping = ["/person", ["/phone", "string"]];
 
-builder = Xml2VarBuilder(mapping);
-builder.feed(xmlString); # can be more than one call to feed(xmlChunk) method
-result = builder.end();
+builder = Xml2VarBuilder({"any_mapping_name": mapping})
+builder.feed(xmlString) # can be more than one call to feed(xmlChunk) method
+result = builder.end()
+result = result["any_mapping_name"]
 ```
 
 Result:
@@ -220,7 +245,7 @@ from nkit4py import Xml2VarBuilder
 #  will be used for key name
 #  Scalar definition may have optional "...|defaultValue"
 #  'datetime' scalar definition MUST contain default value and formatting string
-mapping = """["/person",
+mapping = ["/person",
     {
         "/birthday": "datetime|Fri, 22 Aug 2014 13:59:06 +0000|%a, %d %b %Y %H:%M:%S %z",
         "/phone -> phones": ["/", "string"],
@@ -229,11 +254,12 @@ mapping = """["/person",
         "/photos": ["/*", "string"],
         "/married/@firstTime -> isMerriedFirstTime": "boolean"
     }
-]"""
+]
 
-builder = Xml2VarBuilder(mapping);
-builder.feed(xmlString); # can be more than one call to feed(xmlChunk) method
-result = builder.end();
+builder = Xml2VarBuilder({"any_mapping_name": mapping})
+builder.feed(xmlString) # can be more than one call to feed(xmlChunk) method
+result = builder.end()
+result = result["any_mapping_name"]
 ```
 
 Result:
@@ -286,23 +312,23 @@ class XmlDownloader:
 
     @tornado.gen.coroutine
     def run(self, url, mapping):
-        builder = nkit4py.Xml2VarBuilder(mapping)
+        builder = nkit4py.Xml2VarBuilder({"any_mapping_name": mapping})
         def on_chunk(chunk): # this callback will be called many times
             builder.feed(chunk)
         yield self.http.fetch(HTTPRequest(url, streaming_callback=on_chunk))
-        raise tornado.gen.Return(builder.end())
+        raise tornado.gen.Return(builder.end()["any_mapping_name"])
 
 class MainHandler(RequestHandler):
     @tornado.gen.coroutine
     def get(self):
         downloader = XmlDownloader()
-        result = yield downloader.run("http://rt.com/rss/", """
+        result = yield downloader.run(
+        	"http://rt.com/rss/", 
             ["/channel/item", {
                 "/title": "string",
                 "/content:encoded": "string",
                 "/description": "string"
-            }]
-        """)
+            }])
         self.set_header("Content-Type", "application/json; charset=utf-8")
         self.write(json.dumps(result, indent=2, ensure_ascii=False))
 
@@ -345,24 +371,6 @@ If you want to change key names, use this notation:
 
     "/path/to/element -> newKeyName": ...
     "/path/to/element/@attribute -> newKeyName": ...
-
-
-TODO
-====
-
-	- options: trim, etc
-	- More then one 'mapping' parameters for Xml2VarBuilder(...) constructor to
-	  create more then one Python data structures from one xml string:
-	
-	
-	    mapping1 = ...
-	    mapping2 = ...
-	    builder = Xml2VarBuilder(mapping1, mapping2)
-	    builder.feed(xmlString)
-	    result_list = builder.end()
-	    result1 = result_list[0]
-	    result2 = result_list[1]
-    
 
 Author
 ======

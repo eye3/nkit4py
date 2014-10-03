@@ -40,9 +40,72 @@
 
 namespace nkit
 {
-  PyObject * py_strptime(const char * value, const char * format);
-  PyObject * py_utcfromtimestamp(time_t  timestamp);
-  PyObject * py_fromtimestamp(time_t  timestamp);
+  static PyObject * main_module_;
+  static PyObject * dt_module_;
+  static PyObject * dt_;
+  static PyObject * fromtimestamp_;
+  static PyObject * traceback_module_;
+  static PyObject * traceback_dict_;
+  static PyObject * traceback_format_exception_;
+  static PyObject * traceback_format_exception_only_;
+  static PyObject * json_module_;
+  static PyObject * json_dumps_;
+  static PyObject * string_module_;
+  static PyObject * string_dict_;
+  static PyObject * string_join_fields_;
+  static PyObject * datetime_json_encoder_;
+
+  bool unicode_to_string(PyObject * unicode, std::string * out,
+      std::string * error)
+  {
+    if (PyUnicode_CheckExact(unicode))
+    {
+      PyObject * tmp = PyUnicode_AsUTF8String(unicode);
+      out->assign(PyString_AsString(tmp));
+      Py_DECREF(tmp);
+    }
+    else if (PyString_CheckExact(unicode))
+      out->assign(PyString_AsString(unicode));
+    else
+    {
+      *error = "Expected unicode or string";
+      return false;
+    }
+
+    return true;
+  }
+
+  PyObject * py_fromtimestamp(time_t  timestamp)
+  {
+    return PyObject_CallFunction(fromtimestamp_, (char*)"i", timestamp);
+  }
+
+  bool pyobj_to_json(PyObject * obj, std::string * out, std::string * error)
+  {
+    PyObject * args = PyTuple_New(1);
+    Py_INCREF(obj);
+    PyTuple_SetItem(args, 0, obj);
+
+    PyObject * kw = PyDict_New();
+
+    PyObject * indent = PyInt_FromSize_t(2);
+    PyDict_SetItemString(kw, "indent", indent);
+    Py_DECREF(indent);
+
+    PyObject * ensure_ascii = PyBool_FromLong(0);
+    PyDict_SetItemString(kw, "ensure_ascii", ensure_ascii);
+    Py_DECREF(ensure_ascii);
+
+    PyDict_SetItemString(kw, "cls", datetime_json_encoder_);
+
+    PyObject * result = PyObject_Call(json_dumps_, args, kw);
+    bool ret = unicode_to_string(result, out, error);
+    Py_DECREF(result);
+    Py_DECREF(args);
+    Py_DECREF(kw);
+
+    return ret;
+  }
 
   class PythonPolicy
   {
@@ -51,12 +114,14 @@ namespace nkit
 
     typedef PyObject* type;
 
-    PythonPolicy()
+    PythonPolicy(const detail::Options & options)
       : object_(NULL)
+      , options_(options)
     {}
 
     PythonPolicy(const PythonPolicy & from)
       : object_(from.object_)
+      , options_(from.options_)
     {
       Py_XINCREF(object_);
     }
@@ -98,7 +163,10 @@ namespace nkit
     void _InitAsString( std::string const & value)
     {
       Py_CLEAR(object_);
-      object_ = PyString_FromString(value.c_str());
+      if (options_.unicode_)
+        object_ = PyUnicode_FromStringAndSize(value.data(), value.size());
+      else
+        object_ = PyString_FromStringAndSize(value.data(), value.size());
       assert(object_);
     }
 
@@ -192,7 +260,7 @@ namespace nkit
 
   private:
     type object_;
-
+    const detail::Options & options_;
   };
 
   typedef VarBuilder<PythonPolicy> PythonVarBuilder;
@@ -221,39 +289,85 @@ struct PythonXml2VarBuilder
 };
 
 //------------------------------------------------------------------------------
+bool parse_dict(PyObject * dict, std::string * out, std::string * error)
+{
+  if (PyDict_CheckExact(dict))
+    return nkit::pyobj_to_json(dict, out, error);
+  else
+    return nkit::unicode_to_string(dict, out, error);
+}
+
+//------------------------------------------------------------------------------
 static PyObject* CreatePythonXml2VarBuilder(
     PyTypeObject * type, PyObject * args, PyObject *)
 {
-  const char* target_spec = NULL;
-  int result = PyArg_ParseTuple( args, "s", &target_spec );
+  PyObject * dict1 = NULL;
+  PyObject * dict2 = NULL;
+  int result = PyArg_ParseTuple(args, "O|O", &dict1, &dict2);
   if(!result)
   {
-    PyErr_SetString( PythonXml2VarBuilderError, "Expected string arguments" );
+    PyErr_SetString( PythonXml2VarBuilderError,
+        "Expected one or two arguments:"
+        " 1) mappings or 2) options and mappings" );
     return NULL;
   }
-  if( !target_spec || !*target_spec )
+
+  PyObject * options_dict = dict2 ? dict1 : NULL;
+  PyObject * mapping_dict = dict2 ? dict2 : dict1;
+
+  std::string options, error;
+  if (!options_dict)
+    options = "{}";
+  else if (!parse_dict(options_dict, &options, &error))
+  {
+    PyErr_SetString( PythonXml2VarBuilderError,
+        ("Options parameter must be JSON-string or dictionary: " +
+        error).c_str());
+    return NULL;
+  }
+
+  if (options.empty())
   {
     PyErr_SetString(
-        PythonXml2VarBuilderError, "Parameter string must not be empty" );
+        PythonXml2VarBuilderError,
+        "Options parameter must be dict or JSON object" );
+    return NULL;
+  }
+
+  std::string mappings;
+  if (!parse_dict(mapping_dict, &mappings, &error))
+  {
+    PyErr_SetString( PythonXml2VarBuilderError,
+        ("Mappings parameter must be JSON-string or dictionary: " +
+        error).c_str());
+    return NULL;
+  }
+
+  if(mappings.empty())
+  {
+    PyErr_SetString(
+        PythonXml2VarBuilderError,
+        "Mappings parameter must be dict or JSON object" );
     return NULL;
   }
 
   PythonXml2VarBuilder * self =
       (PythonXml2VarBuilder *)type->tp_alloc( type, 0 );
-
-  if( NULL != self )
+  if (!self)
   {
-    std::string error("");
-    nkit::Xml2VarBuilder< VarBuilder >::Ptr builder =
-        nkit::Xml2VarBuilder< VarBuilder >::Create( target_spec, &error );
-    if(!builder)
-    {
-      PyErr_SetString( PythonXml2VarBuilderError, error.c_str() );
-      return NULL;
-    }
-    self->holder_ =
-        new SharedPtrHolder< nkit::Xml2VarBuilder< VarBuilder > >(builder);
+    PyErr_SetString(PythonXml2VarBuilderError, "Low memory");
+    return NULL;
   }
+
+  nkit::Xml2VarBuilder< VarBuilder >::Ptr builder =
+      nkit::Xml2VarBuilder< VarBuilder >::Create(options, mappings, &error);
+  if(!builder)
+  {
+    PyErr_SetString( PythonXml2VarBuilderError, error.c_str() );
+    return NULL;
+  }
+  self->holder_ =
+      new SharedPtrHolder< nkit::Xml2VarBuilder< VarBuilder > >(builder);
 
   return (PyObject *)self;
 }
@@ -313,8 +427,17 @@ static PyObject * end_method( PyObject * self, PyObject * /*args*/ )
     return NULL;
   }
 
-  PyObject * result = builder->var();
-  Py_XINCREF(result);
+  nkit::StringList mapping_names(builder->mapping_names());
+
+  PyObject * result = PyDict_New();
+  nkit::StringList::const_iterator mapping_name = mapping_names.begin(),
+      end = mapping_names.end();
+  for (; mapping_name != end; ++mapping_name)
+  {
+    PyObject * item = builder->var(*mapping_name);
+    //Py_XINCREF(item);
+    PyDict_SetItemString(result, mapping_name->c_str(), item);
+  }
   return result;
 }
 
@@ -386,77 +509,98 @@ static PyMethodDef ModuleMethods[] =
 //------------------------------------------------------------------------------
 namespace nkit
 {
-  static PyObject * dt_module_;
-  static PyObject * dt_;
-  static PyObject * utcfromtimestamp_;
-  static PyObject * fromtimestamp_;
-  static PyObject * strptime_;
-
-  PyObject * py_utcfromtimestamp(time_t  timestamp)
+  std::string get_python_error()
   {
-    return PyObject_CallFunction(utcfromtimestamp_, (char*)"i", timestamp);
-  }
+    std::string error;
 
-  PyObject * py_fromtimestamp(time_t  timestamp)
-  {
-    return PyObject_CallFunction(fromtimestamp_, (char*)"i", timestamp);
-  }
+    PyObject *exc_obj = NULL;
+    PyObject *exc_str = NULL;
+    PyObject *exc_traceback = NULL;
+    PyObject *lines = NULL;
+    PyObject *exception_string = NULL;
 
-  PyObject * py_strptime(const char * value, const char * format)
-  {
-    return PyObject_CallFunction(strptime_, (char*)"ss", value, format);
-  }
+    if (PyErr_Occurred() == NULL)
+    return std::string("");
 
-  std::string pyobj_to_json(PyObject * obj)
-  {
-    PyObject * main_module = PyImport_AddModule("__main__");
-    PyObject * globals = PyModule_GetDict(main_module);
+    PyErr_Fetch(&exc_obj, &exc_str, &exc_traceback);
 
-    PyObject * locals = PyDict_New();
-
-    int res = PyDict_SetItemString(locals, "obj", obj);
-    if (-1 == res)
+    if (exc_obj == NULL)
     {
-      Py_DECREF(locals);
-      throw "Could not set dict key";
+      error.append("Fatal error in 'GetPythonError': ExcObj == NULL");
+    }
+    else if (exc_str == NULL)
+    {
+      error.append("Fatal error in 'GetPythonError': ExcStr == NULL");
+    }
+    else
+    {
+      if (exc_traceback == NULL)
+        lines = PyObject_CallFunction(
+          traceback_format_exception_only_,
+            const_cast<char*>("OO"), exc_obj, exc_str);
+      else
+        lines = PyObject_CallFunction(
+          traceback_format_exception_,
+          const_cast<char*>("OOO"), exc_obj, exc_str, exc_traceback);
+
+      if (lines == NULL)
+      {
+        error.append("traceback.formatexception error");
+      }
+      else
+      {
+        exception_string = PyObject_CallFunction(
+            string_join_fields_, const_cast<char*>("Os"), lines, "");
+
+        if (exception_string == NULL)
+          error.append("string.joinfields error");
+        else
+          error.append(PyString_AsString(exception_string));
+      }
     }
 
-    PyObject * run = PyRun_String(
-            "import nkit4py\n"
-            "json_str = json.dumps(obj, indent=2, ensure_ascii=False,"
-            "                      cls=nkit4py.DatetimeJSONEncoder)\n",
-             Py_file_input, globals, locals);
-    if (NULL == run)
-    {
-      Py_DECREF(locals);
-      throw "Could not run code statements";
-    }
-    Py_DECREF(run);
+    Py_XDECREF(lines);
+    Py_XDECREF(exception_string);
+    Py_XDECREF(exc_obj);
+    Py_XDECREF(exc_str);
+    Py_XDECREF(exc_traceback);
 
-    char * str = PyString_AsString(PyDict_GetItemString(locals, "json_str"));
-    std::string result(str);
-    Py_DECREF(locals);
+    PyErr_Clear();
 
-    return result;
+    return std::string(error);
   }
 
   std::string PythonPolicy::ToString() const
   {
-    return pyobj_to_json(object_);
+    std::string ret, error;
+    try
+    {
+      nkit::pyobj_to_json(object_, &ret, &error);
+      return ret;
+    }
+    catch (...)
+    {
+      return std::string("");
+    }
   }
 
-  const char DatetimeJSONEncoderClass[] =
-        "import json\n"
-        "import datetime\n"
-        "class DatetimeJSONEncoder(json.JSONEncoder):\n"
+  const char DATETIME_JSON_ENCODER_CLASS[] =
+        "class DatetimeJSONEncoder(nkit_tmp_json.JSONEncoder):\n"
+        "    _datetime = nkit_tmp_datetime\n"
+        "    _traceback = nkit_tmp_traceback\n"
+        "    _json = nkit_tmp_json\n"
         "    def default( self, obj ):\n"
-        "        if  isinstance( obj, datetime.datetime ):\n"
-        "            return obj.strftime(\"%Y-%m-%d %H:%M:%S\")\n"
-        "        if  isinstance( obj, datetime.date ):\n"
-        "            return obj.strftime(\"%Y-%m-%d\")\n"
-        "        if  isinstance( obj, datetime.time ):\n"
-        "            return obj.strftime(\"%H:%M:%S\")\n"
-        "        return json.JSONEncoder.default( self, obj )\n"
+        "        try:\n"
+        "            if isinstance(obj, DatetimeJSONEncoder._datetime.datetime):\n"
+        "                return obj.strftime(\"%Y-%m-%d %H:%M:%S\")\n"
+        "            if isinstance(obj, DatetimeJSONEncoder._datetime.date):\n"
+        "                return obj.strftime(\"%Y-%m-%d\")\n"
+        "            if isinstance(obj, DatetimeJSONEncoder._datetime.time):\n"
+        "                return obj.strftime(\"%H:%M:%S\")\n"
+        "        except Exception:\n"
+        "            # text = DatetimeJSONEncoder._traceback.format_exc()\n"
+        "            return ''\n"
+        "        return DatetimeJSONEncoder._json.JSONEncoder.default( self, obj )\n"
         ;
 
 } // namespace nkit
@@ -467,12 +611,13 @@ PyMODINIT_FUNC initnkit4py(void)
   if( -1 == PyType_Ready(&PythonXml2VarBuilderType) )
     return;
 
-  PyObject * module = Py_InitModule( "nkit4py", ModuleMethods );
+  PyObject * module = Py_InitModule("nkit4py", ModuleMethods);
   if( NULL == module )
     return;
 
   PythonXml2VarBuilderError =
       PyErr_NewException( (char *)"Xml2VarBuilder.Error", NULL, NULL );
+
   Py_INCREF(PythonXml2VarBuilderError);
   PyModule_AddObject( module, "Error", PythonXml2VarBuilderError );
 
@@ -480,44 +625,79 @@ PyMODINIT_FUNC initnkit4py(void)
   PyModule_AddObject( module,
       "Xml2VarBuilder", (PyObject *)&PythonXml2VarBuilderType );
 
+  nkit::traceback_module_ = PyImport_ImportModule("traceback");
+  assert(nkit::traceback_module_);
+  Py_INCREF(nkit::traceback_module_);
+
+  nkit::traceback_dict_ = PyModule_GetDict(nkit::traceback_module_);
+  Py_INCREF(nkit::traceback_dict_);
+
+  nkit::traceback_format_exception_ =
+      PyDict_GetItemString(nkit::traceback_dict_, "format_exception");
+  Py_INCREF(nkit::traceback_format_exception_);
+
+  nkit::traceback_format_exception_only_ =
+      PyDict_GetItemString(nkit::traceback_dict_, "format_exception_only");
+  Py_INCREF(nkit::traceback_format_exception_only_);
+
+  nkit::string_module_ = PyImport_ImportModule("string");
+  assert(nkit::string_module_);
+  Py_INCREF(nkit::string_module_);
+
+  nkit::string_dict_ = PyModule_GetDict(nkit::string_module_);
+  Py_INCREF(nkit::string_dict_);
+
+  nkit::string_join_fields_ =
+      PyDict_GetItemString(nkit::string_dict_, "joinfields");
+  Py_INCREF(nkit::string_join_fields_);
+
+  nkit::json_module_ = PyImport_ImportModule("json");
+  assert(nkit::json_module_);
+  Py_INCREF(nkit::json_module_);
+
+  nkit::json_dumps_ = PyObject_GetAttrString(nkit::json_module_, "dumps");
+  assert(nkit::json_dumps_);
+  Py_INCREF(nkit::json_dumps_);
+
   nkit::dt_module_ = PyImport_ImportModule("datetime");
   assert(nkit::dt_module_);
+  Py_INCREF(nkit::dt_module_);
 
   nkit::dt_ = PyObject_GetAttrString(nkit::dt_module_, "datetime");
   assert(nkit::dt_);
-
-  nkit::utcfromtimestamp_ = PyObject_GetAttrString(nkit::dt_, "utcfromtimestamp");
-  assert(nkit::utcfromtimestamp_);
+  Py_INCREF(nkit::dt_);
 
   nkit::fromtimestamp_ = PyObject_GetAttrString(nkit::dt_, "fromtimestamp");
   assert(nkit::fromtimestamp_);
-
-  nkit::strptime_ = PyObject_GetAttrString(nkit::dt_, "strptime");
-  assert(nkit::strptime_);
+  Py_INCREF(nkit::fromtimestamp_);
 
   // class DatetimeJSONEncoder
-  PyObject * main_module = PyImport_AddModule("__main__");
-  PyObject * globals = PyModule_GetDict(main_module);
+  nkit::main_module_ = PyImport_AddModule("__main__");
+  Py_INCREF(nkit::main_module_);
+  PyObject * globals = PyModule_GetDict(nkit::main_module_);
   PyObject * locals = PyDict_New();
-  PyObject * run = PyRun_String(nkit::DatetimeJSONEncoderClass,
+  PyDict_SetItemString(globals, "nkit_tmp_datetime", nkit::dt_module_);
+  PyDict_SetItemString(globals, "nkit_tmp_traceback", nkit::traceback_module_);
+  PyDict_SetItemString(globals, "nkit_tmp_json", nkit::json_module_);
+  PyObject * run = PyRun_String(nkit::DATETIME_JSON_ENCODER_CLASS,
       Py_file_input, globals, locals);
   if ( NULL == run)
   {
     Py_DECREF(locals);
-    throw "Could not run code statements";
+    CERR("Could not run code statements");
+    return;
   }
-  Py_DECREF(run);
-  PyObject * cls = PyDict_GetItemString(locals, "DatetimeJSONEncoder");
-  PyModule_AddObject( module, "DatetimeJSONEncoder", cls );
 
-//  PyDict_SetItemString(locals, "obj", PyDict_New());
-//  run = PyRun_String(
-//            "import nkit4py\n"
-//            "json_str = json.dumps(obj, indent=2, ensure_ascii=False,"
-//            "                      cls=nkit4py.DatetimeJSONEncoder)\n",
-//             Py_file_input, globals, locals);
-//  char * str = PyString_AsString(PyDict_GetItemString(locals, "json_str"));
-//  if (str)
-//    CINFO(str);
+  nkit::datetime_json_encoder_ =
+      PyDict_GetItemString(locals, "DatetimeJSONEncoder");
+  assert(nkit::datetime_json_encoder_);
+  Py_INCREF(nkit::datetime_json_encoder_);
+  PyModule_AddObject(module, "DatetimeJSONEncoder",
+      nkit::datetime_json_encoder_);
+
+  PyDict_DelItemString(globals, "nkit_tmp_datetime");
+  PyDict_DelItemString(globals, "nkit_tmp_traceback");
+  PyDict_DelItemString(globals, "nkit_tmp_json");
   Py_DECREF(locals);
+  Py_DECREF(run);
 }
