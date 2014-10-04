@@ -544,8 +544,7 @@ result = result["persons"]
 Following options are supported:
 
 - "trim": Trim out whitespaces at the beginning and at ending of strings. Boolean. True or False. Default is False.
-- "white_spaces": Characters which are must be considered as white spaces. String.
-  Default - " \t\n\r".
+- "white_spaces": Characters which are must be considered as white spaces. String. Default - "\t\n\r ".
 - "unicode": Boolean flag that defines type of created python textual data. True - unicode, False - string. Default - True.
 
 
