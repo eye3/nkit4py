@@ -1,7 +1,7 @@
 Introduction
 ============
 
-nkit4nodejs - is a [nkit](https://github.com/eye3/nkit.git) C++ library port to Python.
+nkit4py - is a [nkit](https://github.com/eye3/nkit.git) C++ library port to Python.
 
 Currently, only an XML to Python object or list converter and filter
 is exported to Python from nkit library.
