@@ -7,7 +7,7 @@ Python. There is the same port to Node.js - [nkit4nodejs](https://github.com/eye
 Currently, only an XML to Python object or list converter and filter
 is exported to Python from nkit library.
 
-You can:
+With version 1.0 you can:
  
 - create Python data structures, which are different from the structure 
   of XML source.
@@ -27,7 +27,7 @@ Module supports not only native Expat XML encodings, but also many others
 
 With version 2.0 you can:
 
-- Create multiple Python structures from one XML source. (in version 2.0)
+- Create multiple Python structures from one XML source.
 
 - With extra options you can tune some aspects of conversion:
 	- trim out white spaces
@@ -185,8 +185,8 @@ list of all phones of all persons, and list of phone lists for each person.
 First mapping - ["/person/phone", "string"]. It is enclosed in [] brackets.
 This means that we expect to get python list. This mapping type called
 'list-mapping'.
-(Braces - {} - means that we want to get python objects. Not in this example
-- see below). First item of list-mapping defines the XPath where we want to find
+(Braces - {} - means that we want to get python objects. Not in this example - see below).
+First item of list-mapping defines the XPath where we want to find
 data. Second item defines a sub-mapping, which in our case is a scalar-submapping.
 Scalar submapping contains information about type of data we want to get
 ('string' in our case). 
@@ -244,7 +244,7 @@ from nkit4py import Xml2VarBuilder
 
 mappings = {"last_person":
     
-    {   # <- opening brace means object-mapping
+    {   # <- opening brace for object-mapping
     
         "/person/name -> lastPersonName": "string|Captain Nemo",
         "/person/married/@firstTime -> lastPersonIsMarriedFirstTime":
