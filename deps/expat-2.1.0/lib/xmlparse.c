@@ -4916,9 +4916,9 @@ errorProcessor(XML_Parser parser,
                const char *end,
                const char **nextPtr)
 {
-  XML_FORCE_USED(s);
-  XML_FORCE_USED(end);
-  XML_FORCE_USED(nextPtr);
+  XML_FORCE_USED(s)
+  XML_FORCE_USED(end)
+  XML_FORCE_USED(nextPtr)
 
   return errorCode;
 }

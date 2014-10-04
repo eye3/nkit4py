@@ -125,22 +125,22 @@
 static int PTRFASTCALL
 isNever(const ENCODING *enc, const char *p)
 {
-  XML_FORCE_USED(p);
-  XML_FORCE_USED(enc);
+  XML_FORCE_USED(p)
+  XML_FORCE_USED(enc)
   return 0;
 }
 
 static int PTRFASTCALL
 utf8_isName2(const ENCODING *enc, const char *p)
 {
-  XML_FORCE_USED(enc);
+  XML_FORCE_USED(enc)
   return UTF8_GET_NAMING2(namePages, (const unsigned char *)p);
 }
 
 static int PTRFASTCALL
 utf8_isName3(const ENCODING *enc, const char *p)
 {
-  XML_FORCE_USED(enc);
+  XML_FORCE_USED(enc)
   return UTF8_GET_NAMING3(namePages, (const unsigned char *)p);
 }
 
@@ -149,14 +149,14 @@ utf8_isName3(const ENCODING *enc, const char *p)
 static int PTRFASTCALL
 utf8_isNmstrt2(const ENCODING *enc, const char *p)
 {
-  XML_FORCE_USED(enc);
+  XML_FORCE_USED(enc)
   return UTF8_GET_NAMING2(nmstrtPages, (const unsigned char *)p);
 }
 
 static int PTRFASTCALL
 utf8_isNmstrt3(const ENCODING *enc, const char *p)
 {
-  XML_FORCE_USED(enc);
+  XML_FORCE_USED(enc)
   return UTF8_GET_NAMING3(nmstrtPages, (const unsigned char *)p);
 }
 
@@ -165,21 +165,21 @@ utf8_isNmstrt3(const ENCODING *enc, const char *p)
 static int PTRFASTCALL
 utf8_isInvalid2(const ENCODING *enc, const char *p)
 {
-  XML_FORCE_USED(enc);
+  XML_FORCE_USED(enc)
   return UTF8_INVALID2((const unsigned char *)p);
 }
 
 static int PTRFASTCALL
 utf8_isInvalid3(const ENCODING *enc, const char *p)
 {
-  XML_FORCE_USED(enc);
+  XML_FORCE_USED(enc)
   return UTF8_INVALID3((const unsigned char *)p);
 }
 
 static int PTRFASTCALL
 utf8_isInvalid4(const ENCODING *enc, const char *p)
 {
-  XML_FORCE_USED(enc);
+  XML_FORCE_USED(enc)
   return UTF8_INVALID4((const unsigned char *)p);
 }
 
@@ -344,7 +344,7 @@ utf8_toUtf8(const ENCODING *enc,
             const char **fromP, const char *fromLim,
             char **toP, const char *toLim)
 {
-  XML_FORCE_USED(enc);
+  XML_FORCE_USED(enc)
 
   char *to;
   const char *from;
@@ -453,7 +453,7 @@ latin1_toUtf8(const ENCODING *enc,
               const char **fromP, const char *fromLim,
               char **toP, const char *toLim)
 {
-  XML_FORCE_USED(enc);
+  XML_FORCE_USED(enc)
 
   for (;;) {
     unsigned char c;
@@ -480,7 +480,7 @@ latin1_toUtf16(const ENCODING *enc,
                const char **fromP, const char *fromLim,
                unsigned short **toP, const unsigned short *toLim)
 {
-  XML_FORCE_USED(enc);
+  XML_FORCE_USED(enc)
 
   while (*fromP != fromLim && *toP != toLim)
     *(*toP)++ = (unsigned char)*(*fromP)++;
@@ -515,7 +515,7 @@ ascii_toUtf8(const ENCODING *enc,
              const char **fromP, const char *fromLim,
              char **toP, const char *toLim)
 {
-  XML_FORCE_USED(enc);
+  XML_FORCE_USED(enc)
 
   while (*fromP != fromLim && *toP != toLim)
     *(*toP)++ = *(*fromP)++;
@@ -570,7 +570,7 @@ E ## toUtf8(const ENCODING *enc, \
             const char **fromP, const char *fromLim, \
             char **toP, const char *toLim) \
 { \
-  XML_FORCE_USED(enc); \
+  XML_FORCE_USED(enc) \
   const char *from; \
   for (from = *fromP; from != fromLim; from += 2) { \
     int plane; \
@@ -634,7 +634,7 @@ E ## toUtf16(const ENCODING *enc, \
              const char **fromP, const char *fromLim, \
              unsigned short **toP, const unsigned short *toLim) \
 { \
-  XML_FORCE_USED(enc); \
+  XML_FORCE_USED(enc) \
   /* Avoid copying first half only of surrogate */ \
   if (fromLim - *fromP > ((toLim - *toP) << 1) \
       && (GET_HI(fromLim - 2) & 0xF8) == 0xD8) \
@@ -972,7 +972,7 @@ static void PTRCALL
 initUpdatePosition(const ENCODING *enc, const char *ptr,
                    const char *end, POSITION *pos)
 {
-  XML_FORCE_USED(enc);
+  XML_FORCE_USED(enc)
 
   normal_updatePosition(&utf8_encoding.enc, ptr, end, pos);
 }
