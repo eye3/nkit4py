@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from nkit4py import Xml2VarBuilder, DatetimeJSONEncoder
 import json
+from datetime import *
+
 import os
 import sys
-from datetime import *
-from nkit4py import Xml2VarBuilder, DatetimeJSONEncoder
 
 
 # ------------------------------------------------------------------------------
@@ -318,7 +319,7 @@ if persons_etalon != persons:
     print "Error #2.3"
     sys.exit(1)
 
-
+#-------------------------------------------------------------------------------
 # mapping = ["/person",
 #     {
 #         "/photos": ["/*", {
@@ -336,6 +337,28 @@ if persons_etalon != persons:
 # builder.feed(xml_string)
 # result = builder.end()
 # persons = result["persons"]
+#
+#-------------------------------------------------------------------------------
+# mapping = ["/person",
+#     {
+#         "/*": "string"
+#     }
+# ]
+#
+# mappings = {"persons": mapping}
+#
+# options = {
+#     "trim": True,
+#     "white_spaces": " \t\n\r",
+#     "unicode": False
+# }
+#
+# builder = Xml2VarBuilder(options, mappings)
+# builder.feed(xml_string)
+# result = builder.end()
+# persons = result["persons"]
+#
+#-------------------------------------------------------------------------------
 # pring_json(persons)
 
 print "ok"
