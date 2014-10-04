@@ -1,13 +1,12 @@
 Introduction
 ============
 
-nkit4nodejs - is a [nkit](https://github.com/eye3/nkit.git) C++ library port to 
-Python. There is the same port to Node.js - [nkit4nodejs](https://github.com/eye3/nkit4nodejs.git).
+nkit4nodejs - is a [nkit](https://github.com/eye3/nkit.git) C++ library port to Python.
 
 Currently, only an XML to Python object or list converter and filter
 is exported to Python from nkit library.
 
-With version 1.0 you can:
+With nkit4py module you can:
  
 - Create Python data structures, which are different from the structure 
   of XML source.
@@ -172,11 +171,23 @@ Let's consider script above.
 First of all, we importing nkit4py's class Xml2VarBuilder,
 which is responsible for xml-to-python-structures conversion.
 
-Xml2VarBuilder class uses 'mappings', i.e. some directives about how to perform
+```python
+from nkit4py import Xml2VarBuilder
+```
+
+Xml2VarBuilder class uses 'mappings' structure, i.e. some directives about how to perform
 conversion. Mappings are written in JSON (or they can be JSON-compatible
 python structures, as in our example), they describe conversion process and
 final structures of python data. Our example contains two mappings:
-'list_of_strings' and 'list_of_lists_of_strings'.
+'list_of_strings' and 'list_of_lists_of_strings':
+
+```python
+mappings = {
+    "list_of_strings": ["/person/phone", "string"],
+    "list_of_lists_of_strings": ["/person", ["/phone", "string"]]
+}
+```
+
 This means that after conversion we expect to get two data structures:
 list of all phones of all persons, and list of phone lists for each person.
 
@@ -186,9 +197,9 @@ This means that we expect to get python list. This mapping type called
 (Braces - {} - means that we want to get python objects. Not in this example - see below).
 First item of list-mapping defines the XPath where we want to find
 data. Second item defines a sub-mapping, which in our case is a scalar-submapping.
-Scalar submapping contains information about type of data we want to get
+Scalar-submapping contains information about type of data we want to get
 ('string' in our case). 
-During conversion module will find all elements at path "/person/phone",
+During conversion nkit4py module will find all elements at path "/person/phone",
 convert their values to python unicode and put them into python list.
 
 Second mapping - ["/person", ["/phone", "string"]] is another list-mapping, but
@@ -200,8 +211,8 @@ During conversion module will find all "person" elements and for each "person"
 element it will find all "phone" sub-elements, convert their values to python
 unicode and put them into python list, which in turn will be placed to main list.
 
-Each mapping placed in mappings with some user defined name. This name will be
-used in the future to get actual data from result. In our case thees names are:
+Each mapping placed in "mappings" structure with some user defined name. This name will be
+used in the future to get actual data from result. In our case these names are:
 'list_of_strings' and 'list_of_lists_of_strings'.
 
 Now we create builder object:
@@ -221,7 +232,7 @@ many times (one time for each chunk in order they received).
 
 After feeding all chunks to builder we call end() method to indicate that xml
 has been completely received. Also builder.end() method returns all data
-structures in one variable ("result" in our case):
+structures at once (to "result" variable in our case):
 
 ```python
 result = builder.end()
