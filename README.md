@@ -294,7 +294,7 @@ according to their sub-mappings. In our example, all sub-mappings are scalars.
 Note, that it is possible to use "delault values" by putting them in
 scalar-submapping after type definition and "|" delimiter (
 "Captain Nemo" in mapping item #1 and "True" in mapping item #2).
-Default values for scalars are work only in object-mappings, not in
+Default values for scalars are working only in object-mappings, not in
 list-mappings.
 
 
@@ -335,11 +335,13 @@ Value of persons:
 ]
 ```
 
-Now we use list-mapping and object-submapping. Module will find all person
-elements, for each person element construct object from their "birthday" and
-"name" sub-elements and put those objects to main list.
+Now we use list-mapping and object-submapping. Module will:
 
-Node: datetime scalar-mapping MUST consists of three elements, devided by "|":
+- find all person elements
+- for each person element construct object from their "birthday" and "name" sub-elements and 
+- put those objects to main list.
+
+Node: datetime scalar-mapping MUST consists of three elements, divided by "|":
 
     "datetime|default-value|format-string-in-C-strptime()-function-syntax"
     
