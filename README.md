@@ -9,15 +9,22 @@ is exported to Python from nkit library.
 
 With version 1.0 you can:
  
-- create Python data structures, which are different from the structure 
+- Create Python data structures, which are different from the structure 
   of XML source.
   
-- explicitly identify those elements and attributes in XML source that you
+- Create multiple Python structures from one XML source.
+
+- Explicitly identify those elements and attributes in XML source that you
   want to use for building Python data structures.
   Thus, it's possible to filter out unnecessary XML-data.
   
-- explicitly define Python type of scalar data, fetched from XML source.
+- Explicitly define Python type of scalar data, fetched from XML source.
   Integers, numbers, strings, datetimes and booleans are supported.
+
+- With extra options you can tune some aspects of conversion:
+	- trim out white spaces
+	- explicitly define white space characters
+	- choose unicode or string type for text scalar values
 
 Conversion is carried out using SAX parser Expat, so it's fast and uses less 
 memory when parsing huge XML files.
@@ -25,18 +32,9 @@ memory when parsing huge XML files.
 Module supports not only native Expat XML encodings, but also many others
 (see /deps/nkit/src/vx/encodings_inc_gen.cpp)
 
-With version 2.0 you can:
 
-- Create multiple Python structures from one XML source.
-
-- With extra options you can tune some aspects of conversion:
-	- trim out white spaces
-	- explicitly define white space characters
-	- choose unicode or string type for text scalar values
-
-
-Installation (version 1.0)
-==========================
+Installation
+============
 
 On Linux & Mac OS
 -----------------
