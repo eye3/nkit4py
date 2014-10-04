@@ -207,11 +207,11 @@ first item points to "/person" XPath, and second item is list-submapping.
 List-submapping also contains two elements: sub-xpath and another submapping
 ('string' scalar-sabmapping in our case). Sub-xpath MUST be continuation of
 parent mapping xpath.
-During conversion module will find all "person" elements and for each "person"
+During conversion nkit4py module will find all "person" elements and for each "person"
 element it will find all "phone" sub-elements, convert their values to python
 unicode and put them into python list, which in turn will be placed to main list.
 
-Each mapping placed in "mappings" structure with some user defined name. This name will be
+Each mapping have to be placed in "mappings" structure with some user defined name. This name will be
 used in the future to get actual data from result. In our case these names are:
 'list_of_strings' and 'list_of_lists_of_strings'.
 
@@ -251,9 +251,7 @@ Building simple object from xml string (last 'person' xml element will be used):
 ```python
 from nkit4py import Xml2VarBuilder
 
-mappings = {"last_person":
-    
-    {   # <- opening brace for object-mapping
+mapping = {   # <- opening brace for object-mapping
     
         "/person/name -> lastPersonName": "string|Captain Nemo",
         "/person/married/@firstTime -> lastPersonIsMarriedFirstTime":
@@ -261,7 +259,9 @@ mappings = {"last_person":
         "/person/age": "integer"
     
     }   # <- closing brace of object-mapping
-}
+
+mappings = {"last_person": mappings}
+
 builder = Xml2VarBuilder(mappings)
 builder.feed(xml_string)
 result = builder.end()
@@ -316,7 +316,9 @@ mapping = ["/person",
     }
 ]
 
-builder = Xml2VarBuilder({"persons": mapping})
+mappings = {"persons": mapping}
+
+builder = Xml2VarBuilder(mappings)
 builder.feed(xml_string)
 result = builder.end()
 result = result["persons"]
@@ -370,8 +372,10 @@ mapping = ["/person",
     }
 ]
 
-builder = Xml2VarBuilder({"persons": mapping})
-builder.feed(xmlString) # can be more than one call to feed(xmlChunk) method
+mappings = {"persons": mapping}
+
+builder = Xml2VarBuilder(mappings)
+builder.feed(xml_string)
 result = builder.end()
 result = result["persons"]
 ```
@@ -399,7 +403,7 @@ Value of persons:
 ]
 ```
 	
-To build list-of-objects from big XML source, reading it chunk by chunk
+Building list-of-objects from big XML source, reading it chunk by chunk
 ------------------------------------------------------------------------
 
 This example requires Tornado server to be installed (pip install tornado)
@@ -443,6 +447,39 @@ if __name__ == "__main__":
 ```
 
 
+Options
+=======
+
+With options you can tune some aspects of conversion:
+ 
+```python
+mapping = ["/person",
+    {
+        "/*": "string"
+    }
+]
+
+mappings = {"persons": mapping}
+
+options = {
+    "trim": True,
+    "white_spaces": " \t\n\r",
+    "unicode": False
+}
+
+builder = Xml2VarBuilder(options, mappings)
+builder.feed(xml_string)
+result = builder.end()
+result = result["persons"]
+```
+
+Following options are supported:
+
+- "trim": Trim out whitespaces at the beginning and at ending of strings. Boolean. True or False. Default is False.
+- "white_spaces": Characters which are must be considered as white spaces. String. Default - " \t\n\r".
+- "unicode": Boolean flag that defines type of created python textual data. True - unicode, False - string. Default - True.
+
+
 Notes
 =====
 
@@ -459,7 +496,7 @@ Scalar types can be followed by '|' sign and default value
 **datetime** type MUST be followed by '|' sign, default value,
 another '|' sign and format string. See 
 [man strptime](http://linux.die.net/man/3/strptime) for datetime formatting
-syntax. Default value of datetime must correspond to format string.
+syntax. Default value of datetime MUST correspond to format string.
 
 Path in mapping specifications are very simple XPath now. Only
 
