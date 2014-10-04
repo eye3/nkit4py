@@ -188,7 +188,7 @@ This means that after conversion we expect to get two data structures:
 list of all phones of all persons, and list of phone lists for each person.
 
 First mapping - ["/person/phone", "string"]. It is enclosed in [] brackets.
-This means that we expect to get python list. This mapping type called
+This means that we expect to get python list. This type of mapping is called
 'list-mapping'.
 (Braces - {} - means that we want to get python objects. Not in this example - see below).
 First item of list-mapping defines the XPath where we want to find
