@@ -355,20 +355,11 @@ Building list-of-objects-with-lists from xml string:
 ```python
 from nkit4py import Xml2VarBuilder
 
-#  Here mapping is list, described by /path/to/element and list item description.
-#  List item is described as 'object' sub-mapping.
-#  This 'object' sub-mapping described by set of mappings, each containing
-#  key definition and sub-mapping or scalar.
-#  Keys are described by "/sub/path -> optionalKeyName".
-#  If optionalKeyName doesn't provided, then last element name in "/sub/path"
-#  will be used for key name
-#  Scalar definition may have optional "...|defaultValue"
-#  'datetime' scalar definition MUST contain default value and formatting string
 mapping = ["/person",
     {
         "/address -> cities": ["/city", "string"]
         "/photos": ["/*", "string"],
-        "/mame": "string"
+        "/name": "string"
     }
 ]
 
@@ -402,6 +393,83 @@ Value of persons:
   }
 ]
 ```
+
+As you can see, you can include list- or object-mappings in each other. List-mapping can contain
+list- or object-submapping and vise-versa. Also, it is possible to use '*' char in XPath.
+
+
+Creating keys in object for non-existent xml elements: 
+------------------------------------------------------
+
+
+```python
+from nkit4py import Xml2VarBuilder
+
+mapping = ["/person",
+    {
+        "/photos": ["/*", {
+            "/ -> url" : "string",
+            "/width": "integer|0", # element "width" doesn't exist in xml, 
+                                   # but because of default value in scalar-mapping "integer|0"
+                                   # key "width" will be created with this default value
+            "/height": "integer|0" # element "height" doesn't exist in xml, 
+                                   # but because of default value in scalar-mapping "integer|0"
+                                   # key "height" will be created with this default value
+        }],
+        "/name": "string"
+    }
+]
+
+mappings = {"persons": mapping}
+
+builder = Xml2VarBuilder(mappings)
+builder.feed(xml_string)
+result = builder.end()
+result = result["persons"]
+```
+
+Value of persons:
+
+```json
+[
+  {
+    "photos": [
+      {
+        "url": "img1", 
+        "width": 0, 
+        "height": 0
+      }, 
+      {
+        "url": "img2", 
+        "width": 0, 
+        "height": 0
+      }, 
+      {
+        "url": "img3", 
+        "width": 0, 
+        "height": 0
+      }
+    ], 
+    "name": "Jack"
+  }, 
+  {
+    "photos": [
+      {
+        "url": "img3", 
+        "width": 0, 
+        "height": 0
+      }, 
+      {
+        "url": "img4", 
+        "width": 0, 
+        "height": 0
+      }
+    ], 
+    "name": "Boris"
+  }
+]
+```
+
 	
 Building list-of-objects from big XML source, reading it chunk by chunk
 ------------------------------------------------------------------------

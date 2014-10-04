@@ -318,5 +318,25 @@ if persons_etalon != persons:
     print "Error #2.3"
     sys.exit(1)
 
+
+mapping = ["/person",
+    {
+        "/photos": ["/*", {
+            "/ -> url" : "string",
+            "/width": "integer|0",
+            "/height": "integer|0"
+        }],
+        "/name": "string"
+    }
+]
+
+mappings = {"persons": mapping}
+
+builder = Xml2VarBuilder(mappings)
+builder.feed(xml_string)
+result = builder.end()
+persons = result["persons"]
+pring_json(persons)
+
 print "ok"
 sys.exit(0)
