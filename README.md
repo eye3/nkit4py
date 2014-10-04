@@ -172,7 +172,7 @@ from nkit4py import Xml2VarBuilder
 ```
 
 Xml2VarBuilder class uses 'mappings' structure, i.e. some directives about how to perform
-conversion. Mappings are written in JSON (or they can be JSON-compatible
+conversion. Mappings can be written in JSON string (or they can be JSON-compatible
 python structures, as in our example), they describe conversion process and
 final structures of python data. Our example contains two mappings:
 'list_of_strings' and 'list_of_lists_of_strings':
