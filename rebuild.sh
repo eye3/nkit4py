@@ -8,3 +8,4 @@ rm -r nkit4py.egg-info
 #export CPPFLAGS='-Wall -O0 -ggdb3'
 
 python setup.py build
+python setup.py install
