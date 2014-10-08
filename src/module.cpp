@@ -107,7 +107,7 @@ namespace nkit
     return ret;
   }
 
-  class PythonPolicy
+  class PythonPolicy: Uncopyable
   {
   private:
     friend class VarBuilder<PythonPolicy>;
@@ -119,30 +119,30 @@ namespace nkit
       , options_(options)
     {}
 
-    PythonPolicy(const PythonPolicy & from)
-      : object_(from.object_)
-      , options_(from.options_)
-    {
-      Py_XINCREF(object_);
-    }
-
-    PythonPolicy & operator = (const PythonPolicy & from)
-    {
-      if (this != &from)
-      {
-        Py_CLEAR(object_);
-        object_ = from.object_;
-        Py_XINCREF(object_);
-      }
-      return *this;
-    }
-
+//    PythonPolicy(const PythonPolicy & from)
+//      : object_(from.object_)
+//      , options_(from.options_)
+//    {
+//      Py_XINCREF(object_);
+//    }
+//
+//    PythonPolicy & operator = (const PythonPolicy & from)
+//    {
+//      if (this != &from)
+//      {
+//        Py_CLEAR(object_);
+//        object_ = from.object_;
+//        Py_XINCREF(object_);
+//      }
+//      return *this;
+//    }
+//
     ~PythonPolicy()
     {
       Py_CLEAR(object_);
     }
 
-    void _InitAsBoolean( std::string const & value )
+    void InitAsBoolean( std::string const & value )
     {
       int32_t i = nkit::bool_cast(value);
 
@@ -151,7 +151,7 @@ namespace nkit
       assert(object_);
     }
 
-    void _InitAsInteger( std::string const & value )
+    void InitAsInteger( std::string const & value )
     {
       int64_t i = !value.empty() ? NKIT_STRTOLL( value.c_str(), NULL, 10 ) : 0;
 
@@ -160,7 +160,7 @@ namespace nkit
       assert(object_);
     }
 
-    void _InitAsString( std::string const & value)
+    void InitAsString( std::string const & value)
     {
       Py_CLEAR(object_);
       if (options_.unicode_)
@@ -170,14 +170,14 @@ namespace nkit
       assert(object_);
     }
 
-    void _InitAsUndefined()
+    void InitAsUndefined()
     {
       Py_CLEAR(object_);
       Py_INCREF(Py_None);
       object_ = Py_None;
     }
 
-    void _InitAsFloatFormat( std::string const & value, const char * format )
+    void InitAsFloatFormat( std::string const & value, const char * format )
     {
       double d(0.0);
       if (!value.empty())
@@ -191,7 +191,7 @@ namespace nkit
       assert(object_);
     }
 
-    void _InitAsDatetimeFormat( std::string const & value,
+    void InitAsDatetimeFormat( std::string const & value,
         const char * format )
     {
 #if defined(_WIN32) || defined(_WIN64)
@@ -203,7 +203,7 @@ namespace nkit
 #endif
       if (value.empty() || NKIT_STRPTIME(value.c_str(), format, &_tm) == NULL)
       {
-        _InitAsUndefined();
+        InitAsUndefined();
         return;
       }
 
@@ -213,38 +213,38 @@ namespace nkit
       assert(object_);
     }
 
-    void _InitAsList()
+    void InitAsList()
     {
       Py_CLEAR(object_);
       object_ = PyList_New(0);
       assert(object_);
     }
 
-    void _InitAsDict()
+    void InitAsDict()
     {
       Py_CLEAR(object_);
       object_ = PyDict_New();
       assert(object_);
     }
 
-    void _ListCheck()
+    void ListCheck()
     {
       assert(PyList_CheckExact(object_));
     }
 
-    void _DictCheck()
+    void DictCheck()
     {
       assert(PyDict_CheckExact(object_));
     }
 
-    void _AppendToList( type const & obj )
+    void AppendToList( type const & obj )
     {
       int result = PyList_Append( object_, obj );
       assert(-1 != result);
       NKIT_FORCE_USED(result)
     }
 
-    void _SetDictKeyValue( std::string const & key, type const & var )
+    void SetDictKeyValue( std::string const & key, type const & var )
     {
       int result = PyDict_SetItemString( object_, key.c_str(), var );
       assert(-1 != result);
@@ -306,9 +306,9 @@ static PyObject* CreatePythonXml2VarBuilder(
   int result = PyArg_ParseTuple(args, "O|O", &dict1, &dict2);
   if(!result)
   {
-    PyErr_SetString( PythonXml2VarBuilderError,
+    PyErr_SetString(PythonXml2VarBuilderError,
         "Expected one or two arguments:"
-        " 1) mappings or 2) options and mappings" );
+        " 1) mappings or 2) options and mappings");
     return NULL;
   }
 
@@ -435,7 +435,6 @@ static PyObject * end_method( PyObject * self, PyObject * /*args*/ )
   for (; mapping_name != end; ++mapping_name)
   {
     PyObject * item = builder->var(*mapping_name);
-    //Py_XINCREF(item);
     PyDict_SetItemString(result, mapping_name->c_str(), item);
   }
   return result;

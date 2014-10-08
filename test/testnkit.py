@@ -104,16 +104,17 @@ single_object_etalon = {
 #  Scalar definition may have optional "...|defaultValue"
 #  'datetime' scalar definition MUST contain default value and formatting string
 
-list_of_objects_with_lists_mapping = ["/person",
-                                      {
-                                          "/birthday": "datetime|Fri, 22 Aug 2014 13:59:06 +0000|%a, %d %b %Y %H:%M:%S %z",
-                                          "/phone -> phones": ["/", "string"],
-                                          "/address -> cities": ["/city",
-                                                                 "string"],
-                                          # same as "/address/city -> cities": ["/", "string"]
-                                          "/photos": ["/*", "string"],
-                                          "/married/@firstTime -> isMerriedFirstTime": "boolean"
-                                      }
+list_of_objects_with_lists_mapping = [
+    "/person",
+    {
+        "/birthday": "datetime|Fri, 22 Aug 2014 13:59:06 +0000|%a, %d %b %Y %H:%M:%S %z",
+        "/phone -> phones": ["/", "string"],
+        "/address -> cities": ["/city",
+                             "string"],
+        # same as "/address/city -> cities": ["/", "string"]
+        "/photos": ["/*", "string"],
+        "/married/@firstTime -> isMerriedFirstTime": "boolean"
+    }
 ]
 
 list_of_objects_with_lists_etalon = [
@@ -122,14 +123,14 @@ list_of_objects_with_lists_etalon = [
         "phones": ['+122233344550', '+122233344551'],
         "photos": ["img1", "img2", "img3"],
         "birthday": datetime(1979, 3, 28, 12, 13, 14),
-        "cities": ['New York', 'Boston'],
+        "cities": ['New York', 'Boston']
     },
     {
         "isMerriedFirstTime": True,
         "phones": ['+122233344553', '+122233344554'],
         "photos": ["img3", "img4"],
         "birthday": datetime(1970, 8, 31, 2, 3, 4),
-        "cities": ['Moscow', 'Tula'],
+        "cities": ['Moscow', 'Tula']
     }
 ]
 

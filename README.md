@@ -1,5 +1,4 @@
-Introduction
-============
+# Introduction
 
 nkit4py - is a [nkit](https://github.com/eye3/nkit.git) C++ library port to Python.
 
@@ -17,13 +16,14 @@ With nkit4py module you can:
   want to use for building Python data structures.
   Thus, it's possible to filter out unnecessary XML-data.
   
-- Explicitly define Python type of scalar data, fetched from XML source.
+- Explicitly define Python type of scalar (primitive) data,
+  fetched from XML source.
   Integers, numbers, strings, datetimes and booleans are supported.
 
 - With extra options you can tune some aspects of conversion:
-	- trim out white spaces
-	- explicitly define white space characters
-	- choose unicode or string type for text scalar values
+	- trim text data
+	- explicitly define white space characters for trim option
+	- choose unicode or string type for text data
 
 Conversion is carried out using SAX parser Expat, so it's fast and uses less 
 memory when parsing huge XML files.
@@ -32,18 +32,36 @@ Module supports not only native Expat XML encodings, but also many others
 (see /deps/nkit/src/vx/encodings_inc_gen.cpp)
 
 
-Installation
-============
+# Installation
 
-On Linux & Mac OS
------------------
+## Requirements
+
+nkit4py module supports node.js v0.8 - v0.11
+
+This module must be compiled, so you have to install "build essentials" 
+(if not yet):
+
+- for debian compatible linux (Debian, Ubuntu, etc.):
+
+	sudo apt-get install build-essential
+
+- for red hat compatible linux (RHEL, SUSE, CentOS, etc.):
+
+	sudo yum groupinstall "Development Tools"
+
+- for Windows:
+	
+	Install MS Visual Studio 2012 or higher	([MSVS Express](http://www.visualstudio.com/en-us/products/visual-studio-express-vs.aspx) is ok)
+	
+- in Mac OS use XCode & brew
+
+## On Linux & Mac OS
 
     pip install nkit4py --pre
 
-On Windows
-----------
+## On Windows
 
-Library compiles on MSVS Express version >= 2012.
+Library compiles on MSVS version >= 2012.
 
 For MSVS 2012:
 
@@ -58,8 +76,7 @@ For MSVS 2013:
     pip install nkit4py --pre
 
 
-Usage
-=====
+# Usage
 
 Suppose, we have this xml string:
 
@@ -118,8 +135,7 @@ Suppose, we have this xml string:
 </any_name>
 ```
 
-Quick start:
------------------------------------------
+## Quick start
 
 ```python
 from nkit4py import Xml2VarBuilder
@@ -171,10 +187,10 @@ which is responsible for xml-to-python-structures conversion.
 from nkit4py import Xml2VarBuilder
 ```
 
-Xml2VarBuilder class uses 'mappings' structure, i.e. some directives about how to perform
-conversion. Mappings can be written in JSON string (or they can be JSON-compatible
-python structures, as in our example), they describe conversion process and
-final structures of python data. Our example contains two mappings:
+Xml2VarBuilder class uses 'mappings' structure, i.e. some directives about how
+to perform conversion. Mappings can be written in JSON string (or they can be
+JSON-compatible python structures, as in our example), they describe conversion
+process and final structures of python data. Our example contains two mappings:
 'list_of_strings' and 'list_of_lists_of_strings':
 
 ```python
@@ -189,10 +205,11 @@ list of all phones of all persons, and list of phone lists for each person.
 
 First mapping - ["/person/phone", "string"]. It is enclosed in [] brackets.
 This means that we expect to get python list. This type of mapping is called
-'list-mapping'.
-(Braces - {} - means that we want to get python objects. Not in this example - see below).
+'list-mapping'. (Braces - {} - means that we want to get python objects.
+Not in this example - see below).
 First item of list-mapping defines the XPath where we want to find
-data. Second item defines a sub-mapping, which in our case is a scalar-submapping.
+data. Second item defines a sub-mapping, which in our case is a
+scalar-submapping.
 Scalar-submapping contains information about type of data we want to get
 ('string' in our case). 
 During conversion nkit4py module will find all elements at path "/person/phone",
@@ -203,13 +220,14 @@ first item points to "/person" XPath, and second item is list-submapping.
 List-submapping also contains two elements: sub-xpath and another submapping
 ('string' scalar-sabmapping in our case). Sub-xpath MUST be continuation of
 parent mapping xpath.
-During conversion nkit4py module will find all "person" elements and for each "person"
-element it will find all "phone" sub-elements, convert their values to python
-unicode and put them into python list, which in turn will be placed to main list.
+During conversion nkit4py module will find all "person" elements and for each
+"person" element it will find all "phone" sub-elements, convert their values to
+python unicode and put them into python list, which in turn will be placed to
+main list.
 
-Each mapping have to be placed in "mappings" structure with some user defined name. This name will be
-used in the future to get actual data from result. In our case these names are:
-'list_of_strings' and 'list_of_lists_of_strings'.
+Each mapping have to be placed in "mappings" structure with some user defined
+name. This name will be used in the future to get actual data from result.
+In our case these names are: 'list_of_strings' and 'list_of_lists_of_strings'.
 
 Now we create builder object:
 
@@ -241,8 +259,7 @@ list_of_strings = result["list_of_strings"]
 list_of_lists_of_strings = result["list_of_lists_of_strings"]
 ```
 
-Building simple object from xml string (last 'person' xml element will be used):
---------------------------------------------------------------------------------
+## Building simple object from xml string (last 'person' xml element will be used)
 
 ```python
 from nkit4py import Xml2VarBuilder
@@ -299,8 +316,7 @@ list-mappings.
 
 
 
-Building list-of-objects from xml string:
-----------------------------------------------------
+## Building list-of-objects from xml string
  
 ```python
 from nkit4py import Xml2VarBuilder
@@ -317,7 +333,7 @@ mappings = {"persons": mapping}
 builder = Xml2VarBuilder(mappings)
 builder.feed(xml_string)
 result = builder.end()
-result = result["persons"]
+persons = result["persons"]
 ```
 
 Value of persons:
@@ -347,8 +363,7 @@ Node: datetime scalar-mapping MUST consists of three elements, divided by "|":
     
 Default value MUST correspond to format string
 
-Building list-of-objects-with-lists from xml string:
-----------------------------------------------------
+## Building list-of-objects-with-lists from xml string
  
 ```python
 from nkit4py import Xml2VarBuilder
@@ -366,7 +381,7 @@ mappings = {"persons": mapping}
 builder = Xml2VarBuilder(mappings)
 builder.feed(xml_string)
 result = builder.end()
-result = result["persons"]
+persons = result["persons"]
 ```
 
 Value of persons:
@@ -396,8 +411,7 @@ As you can see, you can include list- or object-mappings in each other. List-map
 list- or object-submapping and vise-versa. Also, it is possible to use '*' char in XPath.
 
 
-Creating keys in object for non-existent xml elements: 
-------------------------------------------------------
+## Creating keys in object for non-existent xml elements 
 
 
 ```python
@@ -423,7 +437,7 @@ mappings = {"persons": mapping}
 builder = Xml2VarBuilder(mappings)
 builder.feed(xml_string)
 result = builder.end()
-result = result["persons"]
+persons = result["persons"]
 ```
 
 Value of persons:
@@ -469,8 +483,7 @@ Value of persons:
 ```
 
 	
-Building list-of-objects from big XML source, reading it chunk by chunk
-------------------------------------------------------------------------
+## Building data structures from big XML source, reading it chunk by chunk
 
 This example requires Tornado server to be installed (pip install tornado)
 
@@ -481,7 +494,7 @@ from tornado.web import RequestHandler, Application
 from tornado.httpclient import HTTPRequest, AsyncHTTPClient
 
 class XmlDownloader:
-    def __init__(self, ):
+    def __init__(self):
         self.http = AsyncHTTPClient()
 
     @tornado.gen.coroutine
@@ -513,8 +526,7 @@ if __name__ == "__main__":
 ```
 
 
-Options
-=======
+# Options
 
 With options you can tune some aspects of conversion:
  
@@ -536,19 +548,20 @@ options = {
 builder = Xml2VarBuilder(options, mappings)
 builder.feed(xml_string)
 result = builder.end()
-result = result["persons"]
+persons = result["persons"]
 ```
 
 Following options are supported:
 
-- "trim": Trim out whitespaces at the beginning and at ending of strings. Boolean. True or False. Default is False.
-- "white_spaces": Characters which are must be considered as white spaces. String. Default - "\t\n\r ", i.e. tab,
-new line, carriage return and space.
-- "unicode": Boolean flag that defines type of created python textual data. True - unicode, False - string. Default - True.
+- "trim": Trim out whitespaces at the beginning and at ending of strings.
+   Boolean. True or False. Default is False.
+- "white_spaces": Characters which are must be considered as white spaces.
+   String. Default - "\t\n\r ", i.e. tab, new line, carriage return and space.
+- "unicode": Boolean flag that defines type of created python textual data.
+   True - unicode, False - string. Default - True.
 
 
-Notes
-=====
+# Notes
 
 Possible scalar types:
 
@@ -580,8 +593,7 @@ If you want to change key names, use this notation:
     "/path/to/element -> newKeyName": ...
     "/path/to/element/@attribute -> newKeyName": ...
 
-Author
-======
+# Author
 
 Boris T. Darchiev (boris.darchiev@gmail.com)
 
