@@ -36,8 +36,6 @@ Module supports not only native Expat XML encodings, but also many others
 
 ## Requirements
 
-nkit4py module supports node.js v0.8 - v0.11
-
 This module must be compiled, so you have to install "build essentials" 
 (if not yet):
 
@@ -273,7 +271,7 @@ mapping = {   # <- opening brace for object-mapping
     
     }   # <- closing brace of object-mapping
 
-mappings = {"last_person": mappings}
+mappings = {"last_person": mapping}
 
 builder = Xml2VarBuilder(mappings)
 builder.feed(xml_string)

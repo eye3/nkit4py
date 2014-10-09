@@ -43,7 +43,7 @@ Installation (version 1.0)
 On Linux & Mac OS
 -----------------
 
-    pip install nkit4py
+    pip install nkit4py==1.0.44
 
 On Windows
 ----------
@@ -54,19 +54,13 @@ For MSVS 2012:
 
     SET VS90COMNTOOLS=%VS110COMNTOOLS%
 
-    pip install nkit4py
+    pip install nkit4py==1.0.44
 
 For MSVS 2013:
 
     SET VS90COMNTOOLS=%VS120COMNTOOLS%
 
-    pip install nkit4py
-
-
-Stable release
---------------
-
-pip install nkit4py==1.0.44
+    pip install nkit4py==1.0.44
 
 
 Installation (version 2.0 - beta)
