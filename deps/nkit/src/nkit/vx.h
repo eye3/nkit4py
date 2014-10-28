@@ -831,6 +831,7 @@ namespace nkit
     void Clear()
     {
       value_.clear();
+      use_default_value_ = true;
     }
 
     virtual bool must_use_default_value() const
