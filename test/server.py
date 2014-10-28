@@ -25,11 +25,11 @@ mapping = ["/person",
     }
 ]
 
-mapping = {"1": mapping}
+mappings = {"1": mapping}
 
 
 def do_mapping():
-    gen = Xml2VarBuilder(mapping)
+    gen = Xml2VarBuilder(mappings)
     gen.feed(xml)
     target = gen.end()
     return json.dumps(target
@@ -45,11 +45,40 @@ class MainHandler(RequestHandler):
         self.write(do_mapping())
 
 
+class RedirectHandler(RequestHandler):
+    urls = ["http://localhost:8888/1/", "http://localhost:8888/2/"]
+    counter = 0
+
+    def get(self):
+        RedirectHandler.counter += 1
+        self.set_header("Content-Type", "application/json; charset=utf-8")
+        self.set_header("X-Accel-Redirect", "/reproxy")
+        self.set_header("X-Reproxy-URL",
+            RedirectHandler.urls[RedirectHandler.counter % len(RedirectHandler.urls)])
+
+
+class Handler1(RequestHandler):
+    def get(self):
+        self.set_header("Content-Type", "application/json; charset=utf-8")
+        self.write("{}")
+
+
+class Handler2(RequestHandler):
+    def get(self):
+        self.set_header("Content-Type", "application/json; charset=utf-8")
+        self.write("[]")
+
+
 def run_tornado():
-    app = Application([tornado.web.url(r"/", MainHandler),])
+    app = Application([
+        tornado.web.url(r"/", MainHandler),
+        tornado.web.url(r"/1/", Handler1),
+        tornado.web.url(r"/2/", Handler2),
+        tornado.web.url(r"/redirect/", RedirectHandler)
+    ])
     server = HTTPServer(app)
     server.bind(8888)
-    server.start(0)  # 0 - forks one process per cpu
+    server.start(1)  # 0 - forks one process per cpu
     IOLoop.current().start()
 
 
