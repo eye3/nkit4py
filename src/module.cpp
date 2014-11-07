@@ -15,10 +15,10 @@
 */
 
 #include "Python.h"
-#include "nkit/vx.h"
 #include "nkit/types.h"
 #include "nkit/tools.h"
 #include "nkit/logger_brief.h"
+#include "nkit/xml2var.h"
 #include <Python.h>
 #include <string>
 
@@ -396,7 +396,7 @@ static PyObject * feed_method( PyObject * self, PyObject * args )
   if( !request || !*request || !size )
   {
     PyErr_SetString(
-        PythonXml2VarBuilderError, "Parameter string must not be empty" );
+        PythonXml2VarBuilderError, "Parameter must not be empty string" );
     return NULL;
   }
 
@@ -411,6 +411,31 @@ static PyObject * feed_method( PyObject * self, PyObject * args )
   }
 
   Py_RETURN_NONE;
+}
+
+//------------------------------------------------------------------------------
+static PyObject * get_method( PyObject * self, PyObject * args )
+{
+  const char* mapping_name = NULL;
+  int result = PyArg_ParseTuple( args, "s", &mapping_name );
+  if(!result)
+  {
+    PyErr_SetString( PythonXml2VarBuilderError, "Expected string argument" );
+    return NULL;
+  }
+  if( !mapping_name || !*mapping_name )
+  {
+    PyErr_SetString(
+        PythonXml2VarBuilderError, "Mapping name must not be empty" );
+    return NULL;
+  }
+
+  nkit::Xml2VarBuilder< VarBuilder >::Ptr builder =
+      ((PythonXml2VarBuilder *)self)->holder_->ptr_;
+
+  PyObject * item = builder->var(mapping_name);
+  Py_INCREF(item);
+  return item;
 }
 
 //------------------------------------------------------------------------------
@@ -446,9 +471,10 @@ static PyMethodDef xml2var_methods[] =
   { "feed", feed_method, METH_VARARGS, "Usage: builder.feed()\n"
     "Invoke \"Feed\" function\n"
     "Returns None\n" },
+  { "get", get_method, METH_VARARGS, "Usage: builder.get()\n"
+	"Returns result by mapping name\n" },
   { "end", end_method, METH_VARARGS, "Usage: builder.end()\n"
-    "Invoke \"End\" function\n"
-    "Returns PyObject\n" },
+	"Returns Dict: results for all mappings\n" },
   { NULL, NULL, 0, NULL } /* Sentinel */
 };
 

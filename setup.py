@@ -81,8 +81,8 @@ cpp_module = extension.Extension(
         "./deps/nkit/src/dynamic/dynamic_table_index_comparators.cpp",
         "./deps/nkit/src/dynamic/dynamic_xml.cpp",
         "./deps/nkit/src/logger/rotate_logger.cpp",
-        "./deps/nkit/src/vx/encodings.cpp",
-        "./deps/nkit/src/vx/vx.cpp",
+        "./deps/nkit/src/encoding/transcode.cpp",
+        "./deps/nkit/src/xml/xml2var.cpp",
         "./deps/nkit/3rd/netbsd/strptime.cpp"
     ]
 )

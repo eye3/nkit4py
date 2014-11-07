@@ -319,6 +319,12 @@ if persons_etalon != persons:
     pring_json(persons_etalon)
     print "Error #2.3"
     sys.exit(1)
+    
+if builder.get("persons") != persons:
+    pring_json(persons)
+    pring_json(builder.get("persons"))
+    print "Error #2.4"
+    sys.exit(1)
 
 #-------------------------------------------------------------------------------
 # mapping = ["/person",

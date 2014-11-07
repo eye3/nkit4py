@@ -564,6 +564,7 @@ Following options are supported:
 Possible scalar types:
 
     - string
+    - unicode
     - integer
     - number
     - datetime
