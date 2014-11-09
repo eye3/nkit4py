@@ -15,10 +15,12 @@
 */
 
 #include "Python.h"
+#include "datetime.h"
 #include "nkit/types.h"
 #include "nkit/tools.h"
 #include "nkit/logger_brief.h"
 #include "nkit/xml2var.h"
+#include "nkit/var2xml.h"
 #include <Python.h>
 #include <string>
 
@@ -37,13 +39,14 @@
 #define NKIT_PYTHON_LONG_FROM_INT64(v) PyLong_FromLongLong(v)
 #endif
 
-
 namespace nkit
 {
+  //----------------------------------------------------------------------------
   static PyObject * main_module_;
   static PyObject * dt_module_;
   static PyObject * dt_;
   static PyObject * fromtimestamp_;
+//  static PyObject * strftime_;
   static PyObject * traceback_module_;
   static PyObject * traceback_dict_;
   static PyObject * traceback_format_exception_;
@@ -55,7 +58,8 @@ namespace nkit
   static PyObject * string_join_fields_;
   static PyObject * datetime_json_encoder_;
 
-  bool unicode_to_string(PyObject * unicode, std::string * out,
+  //----------------------------------------------------------------------------
+  bool py_to_string(PyObject * unicode, std::string * out,
       std::string * error)
   {
     if (PyUnicode_CheckExact(unicode))
@@ -65,21 +69,53 @@ namespace nkit
       Py_DECREF(tmp);
     }
     else if (PyString_CheckExact(unicode))
+    {
       out->assign(PyString_AsString(unicode));
+    }
+    else if (PyFloat_CheckExact(unicode))
+      out->assign(string_cast(PyFloat_AsDouble(unicode)));
+    else if (PyNumber_Check(unicode))
+    {
+      out->assign(string_cast(
+              static_cast<int64_t>(PyNumber_AsSsize_t(unicode, NULL))));
+    }
     else
     {
-      *error = "Expected unicode or string";
-      return false;
+      PyObject * tmp = PyObject_Str(unicode);
+      if (!tmp)
+      {
+        *error = "Could not represent variable to string";
+        return false;
+      }
+
+      bool ret = py_to_string(tmp, out,error);
+      Py_DECREF(tmp);
+      return ret;
     }
 
     return true;
   }
 
+  //----------------------------------------------------------------------------
   PyObject * py_fromtimestamp(time_t  timestamp)
   {
     return PyObject_CallFunction(fromtimestamp_, (char*)"i", timestamp);
   }
 
+  //----------------------------------------------------------------------------
+  std::string py_strftime(const PyObject * data, const std::string & format)
+  {
+    std::string ret, error;
+    PyObject * unicode =
+            PyObject_CallMethod(const_cast<PyObject *>(data),
+                    const_cast<char *>("strftime"),
+                    const_cast<char *>("s"), format.c_str());
+    py_to_string(unicode, &ret, &error);
+    Py_DECREF(unicode);
+    return ret;
+  }
+
+  //----------------------------------------------------------------------------
   bool pyobj_to_json(PyObject * obj, std::string * out, std::string * error)
   {
     PyObject * args = PyTuple_New(1);
@@ -99,7 +135,7 @@ namespace nkit
     PyDict_SetItemString(kw, "cls", datetime_json_encoder_);
 
     PyObject * result = PyObject_Call(json_dumps_, args, kw);
-    bool ret = unicode_to_string(result, out, error);
+    bool ret = py_to_string(result, out, error);
     Py_DECREF(result);
     Py_DECREF(args);
     Py_DECREF(kw);
@@ -107,37 +143,26 @@ namespace nkit
     return ret;
   }
 
-  class PythonPolicy: Uncopyable
+  //----------------------------------------------------------------------------
+  class PythonBuilderPolicy: Uncopyable
   {
   private:
-    friend class VarBuilder<PythonPolicy>;
+    friend class VarBuilder<PythonBuilderPolicy>;
 
     typedef PyObject* type;
 
-    PythonPolicy(const detail::Options & options)
+    static type GetUndefined()
+    {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    PythonBuilderPolicy(const detail::Options & options)
       : object_(NULL)
       , options_(options)
     {}
 
-//    PythonPolicy(const PythonPolicy & from)
-//      : object_(from.object_)
-//      , options_(from.options_)
-//    {
-//      Py_XINCREF(object_);
-//    }
-//
-//    PythonPolicy & operator = (const PythonPolicy & from)
-//    {
-//      if (this != &from)
-//      {
-//        Py_CLEAR(object_);
-//        object_ = from.object_;
-//        Py_XINCREF(object_);
-//      }
-//      return *this;
-//    }
-//
-    ~PythonPolicy()
+    ~PythonBuilderPolicy()
     {
       Py_CLEAR(object_);
     }
@@ -263,17 +288,244 @@ namespace nkit
     const detail::Options & options_;
   };
 
-  typedef VarBuilder<PythonPolicy> PythonVarBuilder;
+  typedef VarBuilder<PythonBuilderPolicy> PythonVarBuilder;
+  typedef Xml2VarBuilder<PythonVarBuilder> Xml2PythonBuilder;
+
+  ////--------------------------------------------------------------------------
+  struct PythonReaderPolicy
+  {
+    typedef PyObject * type;
+
+    //--------------------------------------------------------------------------
+    struct DictConstIterator
+    {
+      DictConstIterator()
+        : data_(NULL)
+        , pos_(-1)
+        , key_(NULL)
+        , value_(NULL)
+      {}
+
+      DictConstIterator(PyObject * data)
+        : data_(data)
+        , pos_(0)
+        , key_(NULL)
+        , value_(NULL)
+      {
+        if (!PyDict_Next(data_, &pos_, &key_, &value_))
+          pos_ = -1;
+      }
+
+      bool operator != (const DictConstIterator & another)
+      {
+        return pos_ != another.pos_;
+      }
+
+      DictConstIterator & operator++()
+      {
+        if (pos_ != -1 && !PyDict_Next(data_, &pos_, &key_, &value_))
+          pos_ = -1;
+        return *this;
+      }
+
+      std::string first() const
+      {
+        if (!key_)
+          return S_EMPTY_;
+
+        std::string ret, err;
+        if (unlikely(!nkit::py_to_string(key_, &ret, &err)))
+          return S_EMPTY_;
+        return ret;
+      }
+
+      PyObject * second() const
+      {
+        if (!value_)
+          return Py_None;
+        return value_;
+      }
+
+      PyObject * data_;
+      Py_ssize_t pos_;
+      PyObject * key_;
+      PyObject * value_;
+    };
+
+    //--------------------------------------------------------------------------
+    struct ListConstIterator
+    {
+      ListConstIterator()
+        : list_(NULL)
+        , size_(0)
+        , pos_(-1)
+      {}
+
+      ListConstIterator(PyObject * list)
+        : list_(PySequence_Fast(list, "Not a sequence"))
+        , size_(list_ != NULL ? PySequence_Size(list_) : 0)
+        , pos_(size_ > 0 ? 0: -1)
+      {}
+
+      ListConstIterator(const ListConstIterator & copy)
+        : list_(copy.list_)
+        , size_(copy.size_)
+        , pos_(copy.pos_)
+      {
+        Py_XINCREF(list_);
+      }
+
+      ListConstIterator & operator = (const ListConstIterator & copy)
+      {
+        list_ = copy.list_;
+        size_ = copy.size_;
+        pos_ = copy.pos_;
+        Py_XINCREF(list_);
+        return *this;
+      }
+
+      ~ListConstIterator()
+      {
+        Py_XDECREF(list_);
+      }
+
+      bool operator != (const ListConstIterator & another)
+      {
+        return pos_ != another.pos_;
+      }
+
+      ListConstIterator & operator++()
+      {
+        if (++pos_ >= size_)
+          pos_ = -1;
+        return *this;
+      }
+
+      PyObject * value() const
+      {
+        if (unlikely(pos_ >= size_ || pos_ < 0))
+          return Py_None;
+        return PySequence_Fast_GET_ITEM(list_, pos_);
+      }
+
+      PyObject * list_;
+      Py_ssize_t size_;
+      Py_ssize_t pos_;
+    };
+
+    //--------------------------------------------------------------------------
+    static DictConstIterator begin_d(const PyObject * data)
+    {
+      return DictConstIterator(const_cast<PyObject *>(data));
+    }
+
+    static DictConstIterator end_d(const PyObject * data)
+    {
+      return DictConstIterator();
+    }
+
+    static ListConstIterator begin_l(const PyObject * data)
+    {
+      return ListConstIterator(const_cast<PyObject *>(data));
+    }
+
+    static ListConstIterator end_l(const PyObject * data)
+    {
+      return ListConstIterator();
+    }
+
+    static std::string First(const DictConstIterator & it)
+    {
+      return it.first();
+    }
+
+    static PyObject * Second(const DictConstIterator & it)
+    {
+      return it.second();
+    }
+
+    static PyObject * Value(const ListConstIterator & it)
+    {
+      return it.value();
+    }
+
+    static bool IsList(const PyObject * data)
+    {
+      bool ret = PyList_CheckExact(const_cast<PyObject *>(data)) ||
+              PyTuple_CheckExact(const_cast<PyObject *>(data)) ||
+              PySet_Check(const_cast<PyObject *>(data)) ;
+      return ret;
+    }
+
+    static bool IsDict(const PyObject * data)
+    {
+      bool ret = PyDict_CheckExact(const_cast<PyObject *>(data));
+      return ret;
+    }
+
+    static bool IsString(const PyObject * data)
+    {
+      return PyUnicode_CheckExact(data) || PyString_CheckExact(data);
+    }
+
+    static bool IsFloat(const PyObject * data)
+    {
+      bool ret = PyFloat_CheckExact(const_cast<PyObject *>(data));
+      return ret;
+    }
+
+    static bool IsDateTime(const PyObject * data)
+    {
+      bool ret = PyDateTime_CheckExact(const_cast<PyObject *>(data));
+      return ret;
+    }
+
+    static std::string GetString(const PyObject * data)
+    {
+      std::string ret, err;
+      py_to_string(const_cast<PyObject *>(data), &ret, &err);
+      return ret;
+    }
+
+    static std::string GetStringAsDateTime(const PyObject * data,
+            const std::string & format)
+    {
+      return py_strftime(data, format);
+    }
+
+    static std::string GetStringAsFloat(const PyObject * data,
+            size_t precision)
+    {
+      return string_cast(PyFloat_AsDouble(const_cast<PyObject *>(data)),
+              precision);
+    }
+
+    static bool GetByKey(const PyObject * data, const std::string & key,
+            PyObject ** value)
+    {
+      *value = PyDict_GetItemString(const_cast<PyObject *>(data), key.c_str());
+      return *value != NULL;
+    }
+  };
+
+  typedef Var2XmlConverter<PythonReaderPolicy> Python2XmlConverter;
 
 } // namespace nkit
 
-//------------------------------------------------------------------------------
-typedef nkit::PythonVarBuilder VarBuilder;
-
+////----------------------------------------------------------------------------
 /// exception
-static PyObject * PythonXml2VarBuilderError;
+static PyObject * Nkit4PyError;
 
-//------------------------------------------------------------------------------
+////----------------------------------------------------------------------------
+bool parse_dict(PyObject * dict, std::string * out, std::string * error)
+{
+  if (PyDict_CheckExact(dict))
+    return nkit::pyobj_to_json(dict, out, error);
+  else
+    return nkit::py_to_string(dict, out, error);
+}
+
+////----------------------------------------------------------------------------
 template<typename T>
 struct SharedPtrHolder
 {
@@ -281,23 +533,14 @@ struct SharedPtrHolder
   NKIT_SHARED_PTR(T) ptr_;
 };
 
-//------------------------------------------------------------------------------
-struct PythonXml2VarBuilder
+////----------------------------------------------------------------------------
+struct Xml2PythonBuilderData
 {
   PyObject_HEAD;
-  SharedPtrHolder< nkit::Xml2VarBuilder< VarBuilder > > * holder_;
+  SharedPtrHolder< nkit::Xml2PythonBuilder > * holder_;
 };
 
-//------------------------------------------------------------------------------
-bool parse_dict(PyObject * dict, std::string * out, std::string * error)
-{
-  if (PyDict_CheckExact(dict))
-    return nkit::pyobj_to_json(dict, out, error);
-  else
-    return nkit::unicode_to_string(dict, out, error);
-}
-
-//------------------------------------------------------------------------------
+////----------------------------------------------------------------------------
 static PyObject* CreatePythonXml2VarBuilder(
     PyTypeObject * type, PyObject * args, PyObject *)
 {
@@ -306,7 +549,7 @@ static PyObject* CreatePythonXml2VarBuilder(
   int result = PyArg_ParseTuple(args, "O|O", &dict1, &dict2);
   if(!result)
   {
-    PyErr_SetString(PythonXml2VarBuilderError,
+    PyErr_SetString(Nkit4PyError,
         "Expected one or two arguments:"
         " 1) mappings or 2) options and mappings");
     return NULL;
@@ -320,7 +563,7 @@ static PyObject* CreatePythonXml2VarBuilder(
     options = "{}";
   else if (!parse_dict(options_dict, &options, &error))
   {
-    PyErr_SetString( PythonXml2VarBuilderError,
+    PyErr_SetString( Nkit4PyError,
         ("Options parameter must be JSON-string or dictionary: " +
         error).c_str());
     return NULL;
@@ -329,7 +572,7 @@ static PyObject* CreatePythonXml2VarBuilder(
   if (options.empty())
   {
     PyErr_SetString(
-        PythonXml2VarBuilderError,
+        Nkit4PyError,
         "Options parameter must be dict or JSON object" );
     return NULL;
   }
@@ -337,7 +580,7 @@ static PyObject* CreatePythonXml2VarBuilder(
   std::string mappings;
   if (!parse_dict(mapping_dict, &mappings, &error))
   {
-    PyErr_SetString( PythonXml2VarBuilderError,
+    PyErr_SetString( Nkit4PyError,
         ("Mappings parameter must be JSON-string or dictionary: " +
         error).c_str());
     return NULL;
@@ -346,43 +589,43 @@ static PyObject* CreatePythonXml2VarBuilder(
   if(mappings.empty())
   {
     PyErr_SetString(
-        PythonXml2VarBuilderError,
+        Nkit4PyError,
         "Mappings parameter must be dict or JSON object" );
     return NULL;
   }
 
-  PythonXml2VarBuilder * self =
-      (PythonXml2VarBuilder *)type->tp_alloc( type, 0 );
+  Xml2PythonBuilderData * self =
+      (Xml2PythonBuilderData *)type->tp_alloc( type, 0 );
   if (!self)
   {
-    PyErr_SetString(PythonXml2VarBuilderError, "Low memory");
+    PyErr_SetString(Nkit4PyError, "Low memory");
     return NULL;
   }
 
-  nkit::Xml2VarBuilder< VarBuilder >::Ptr builder =
-      nkit::Xml2VarBuilder< VarBuilder >::Create(options, mappings, &error);
+  nkit::Xml2PythonBuilder::Ptr builder =
+      nkit::Xml2PythonBuilder::Create(options, mappings, &error);
   if(!builder)
   {
-    PyErr_SetString( PythonXml2VarBuilderError, error.c_str() );
+    PyErr_SetString( Nkit4PyError, error.c_str() );
     return NULL;
   }
   self->holder_ =
-      new SharedPtrHolder< nkit::Xml2VarBuilder< VarBuilder > >(builder);
+      new SharedPtrHolder< nkit::Xml2PythonBuilder >(builder);
 
   return (PyObject *)self;
 }
 
-//------------------------------------------------------------------------------
+////----------------------------------------------------------------------------
 static void DeletePythonXml2VarBuilder(PyObject * self)
 {
-  SharedPtrHolder< nkit::Xml2VarBuilder< VarBuilder > > * ptr =
-        ((PythonXml2VarBuilder *)self)->holder_;
+  SharedPtrHolder< nkit::Xml2PythonBuilder > * ptr =
+        ((Xml2PythonBuilderData *)self)->holder_;
   if (ptr)
     delete ptr;
   self->ob_type->tp_free(self);
 }
 
-//------------------------------------------------------------------------------
+////----------------------------------------------------------------------------
 static PyObject * feed_method( PyObject * self, PyObject * args )
 {
   const char* request = NULL;
@@ -390,65 +633,65 @@ static PyObject * feed_method( PyObject * self, PyObject * args )
   int result = PyArg_ParseTuple( args, "s#", &request, &size );
   if(!result)
   {
-    PyErr_SetString( PythonXml2VarBuilderError, "Expected string arguments" );
+    PyErr_SetString( Nkit4PyError, "Expected string arguments" );
     return NULL;
   }
   if( !request || !*request || !size )
   {
     PyErr_SetString(
-        PythonXml2VarBuilderError, "Parameter must not be empty string" );
+        Nkit4PyError, "Parameter must not be empty string" );
     return NULL;
   }
 
-  nkit::Xml2VarBuilder< VarBuilder >::Ptr builder =
-      ((PythonXml2VarBuilder *)self)->holder_->ptr_;
+  nkit::Xml2PythonBuilder::Ptr builder =
+      ((Xml2PythonBuilderData *)self)->holder_->ptr_;
 
   std::string error("");
   if(!builder->Feed( request, size, false, &error ))
   {
-    PyErr_SetString( PythonXml2VarBuilderError, error.c_str() );
+    PyErr_SetString( Nkit4PyError, error.c_str() );
     return NULL;
   }
 
   Py_RETURN_NONE;
 }
 
-//------------------------------------------------------------------------------
+////----------------------------------------------------------------------------
 static PyObject * get_method( PyObject * self, PyObject * args )
 {
   const char* mapping_name = NULL;
   int result = PyArg_ParseTuple( args, "s", &mapping_name );
   if(!result)
   {
-    PyErr_SetString( PythonXml2VarBuilderError, "Expected string argument" );
+    PyErr_SetString( Nkit4PyError, "Expected string argument" );
     return NULL;
   }
   if( !mapping_name || !*mapping_name )
   {
     PyErr_SetString(
-        PythonXml2VarBuilderError, "Mapping name must not be empty" );
+        Nkit4PyError, "Mapping name must not be empty" );
     return NULL;
   }
 
-  nkit::Xml2VarBuilder< VarBuilder >::Ptr builder =
-      ((PythonXml2VarBuilder *)self)->holder_->ptr_;
+  nkit::Xml2PythonBuilder::Ptr builder =
+      ((Xml2PythonBuilderData *)self)->holder_->ptr_;
 
   PyObject * item = builder->var(mapping_name);
   Py_INCREF(item);
   return item;
 }
 
-//------------------------------------------------------------------------------
+////------------------------------------------------------------------------------
 static PyObject * end_method( PyObject * self, PyObject * /*args*/ )
 {
-  nkit::Xml2VarBuilder< VarBuilder >::Ptr builder =
-        ((PythonXml2VarBuilder *)self)->holder_->ptr_;
+  nkit::Xml2PythonBuilder::Ptr builder =
+          ((Xml2PythonBuilderData *)self)->holder_->ptr_;
 
   std::string empty("");
   std::string error("");
   if(!builder->Feed( empty.c_str(), empty.size(), true, &error ))
   {
-    PyErr_SetString( PythonXml2VarBuilderError, error.c_str() );
+    PyErr_SetString( Nkit4PyError, error.c_str() );
     return NULL;
   }
 
@@ -465,25 +708,25 @@ static PyObject * end_method( PyObject * self, PyObject * /*args*/ )
   return result;
 }
 
-//------------------------------------------------------------------------------
+////----------------------------------------------------------------------------
 static PyMethodDef xml2var_methods[] =
 {
   { "feed", feed_method, METH_VARARGS, "Usage: builder.feed()\n"
-    "Invoke \"Feed\" function\n"
-    "Returns None\n" },
+          "Invoke \"Feed\" function\n"
+          "Returns None\n" },
   { "get", get_method, METH_VARARGS, "Usage: builder.get()\n"
-	"Returns result by mapping name\n" },
+          "Returns result by mapping name\n" },
   { "end", end_method, METH_VARARGS, "Usage: builder.end()\n"
-	"Returns Dict: results for all mappings\n" },
+          "Returns Dict: results for all mappings\n" },
   { NULL, NULL, 0, NULL } /* Sentinel */
 };
 
-//------------------------------------------------------------------------------
-static PyTypeObject PythonXml2VarBuilderType =
+////----------------------------------------------------------------------------
+static PyTypeObject Xml2PythonBuilderType =
 {
   PyVarObject_HEAD_INIT(NULL, 0)
   "nkit4py.Xml2VarBuilder", /*tp_name*/
-  sizeof(PythonXml2VarBuilder), /*tp_basicsize*/
+  sizeof(Xml2PythonBuilderData), /*tp_basicsize*/
   0, /*tp_itemsize*/
   DeletePythonXml2VarBuilder, /*tp_dealloc*/
   0, /*tp_print*/
@@ -521,9 +764,57 @@ static PyTypeObject PythonXml2VarBuilderType =
   CreatePythonXml2VarBuilder,//tp_new,
 };
 
-//------------------------------------------------------------------------------
+////----------------------------------------------------------------------------
+static PyObject * var2xml_method( PyObject * self, PyObject * args )
+{
+  PyObject * data = NULL;
+  PyObject * options_dict = NULL;
+  int result = PyArg_ParseTuple( args, "O|O", &data, &options_dict);
+  if(!result)
+  {
+    PyErr_SetString( Nkit4PyError,
+            "Expected any object and optional 'options' Dict" );
+    return NULL;
+  }
+
+  std::string options, error;
+  nkit::Dynamic op = nkit::Dynamic::Dict();
+  if (options_dict && !parse_dict(options_dict, &options, &error))
+  {
+    std::string tmp("Options parameter must be JSON-string or dictionary: " +
+            error);
+    PyErr_SetString( Nkit4PyError, tmp.c_str());
+    return NULL;
+  }
+  else if (!options.empty())
+  {
+    op = nkit::DynamicFromJson(options, &error);
+    if (!op && !error.empty())
+    {
+      std::string tmp("Options parameter must be JSON-string or dictionary: " +
+              error);
+      PyErr_SetString( Nkit4PyError, tmp.c_str());
+      return NULL;
+    }
+  }
+
+  std::string out;
+  if(!nkit::Python2XmlConverter::Process(op, data, &out, &error))
+  {
+    PyErr_SetString( Nkit4PyError, error.c_str() );
+    return NULL;
+  }
+
+  return PyString_FromStringAndSize(out.data(), out.size());
+}
+
+////----------------------------------------------------------------------------
 static PyMethodDef ModuleMethods[] =
 {
+  { "var2xml", var2xml_method, METH_VARARGS,
+          "Usage: nkit4py.var2xml(data, options)\n"
+          "Converts python structure to xml string\n"
+          "Returns None\n" },
   { NULL, NULL, 0, NULL } /* Sentinel */
 };
 
@@ -531,7 +822,7 @@ static PyMethodDef ModuleMethods[] =
 #define PyMODINIT_FUNC void
 #endif
 
-//------------------------------------------------------------------------------
+////----------------------------------------------------------------------------
 namespace nkit
 {
   std::string get_python_error()
@@ -595,7 +886,7 @@ namespace nkit
     return std::string(error);
   }
 
-  std::string PythonPolicy::ToString() const
+  std::string PythonBuilderPolicy::ToString() const
   {
     std::string ret, error;
     try
@@ -630,25 +921,23 @@ namespace nkit
 
 } // namespace nkit
 
-//------------------------------------------------------------------------------
+////----------------------------------------------------------------------------
 PyMODINIT_FUNC initnkit4py(void)
 {
-  if( -1 == PyType_Ready(&PythonXml2VarBuilderType) )
+  if( -1 == PyType_Ready(&Xml2PythonBuilderType) )
     return;
 
   PyObject * module = Py_InitModule("nkit4py", ModuleMethods);
   if( NULL == module )
     return;
 
-  PythonXml2VarBuilderError =
-      PyErr_NewException( (char *)"Xml2VarBuilder.Error", NULL, NULL );
+  Nkit4PyError = PyErr_NewException( (char *)"nkit4py.Error", NULL, NULL );
+  Py_INCREF(Nkit4PyError);
+  PyModule_AddObject( module, "Error", Nkit4PyError );
 
-  Py_INCREF(PythonXml2VarBuilderError);
-  PyModule_AddObject( module, "Error", PythonXml2VarBuilderError );
-
-  Py_INCREF(&PythonXml2VarBuilderType);
+  Py_INCREF(&Xml2PythonBuilderType);
   PyModule_AddObject( module,
-      "Xml2VarBuilder", (PyObject *)&PythonXml2VarBuilderType );
+          "Xml2VarBuilder", (PyObject *)&Xml2PythonBuilderType );
 
   nkit::traceback_module_ = PyImport_ImportModule("traceback");
   assert(nkit::traceback_module_);
@@ -688,6 +977,8 @@ PyMODINIT_FUNC initnkit4py(void)
   assert(nkit::dt_module_);
   Py_INCREF(nkit::dt_module_);
 
+  PyDateTime_IMPORT;
+
   nkit::dt_ = PyObject_GetAttrString(nkit::dt_module_, "datetime");
   assert(nkit::dt_);
   Py_INCREF(nkit::dt_);
@@ -696,6 +987,10 @@ PyMODINIT_FUNC initnkit4py(void)
   assert(nkit::fromtimestamp_);
   Py_INCREF(nkit::fromtimestamp_);
 
+//  nkit::strftime_ = PyObject_GetAttrString(nkit::dt_, "strftime");
+//  assert(nkit::strftime_);
+//  Py_INCREF(nkit::strftime_);
+//
   // class DatetimeJSONEncoder
   nkit::main_module_ = PyImport_AddModule("__main__");
   Py_INCREF(nkit::main_module_);

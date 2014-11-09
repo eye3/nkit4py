@@ -5,10 +5,11 @@ import tornado
 from tornado.ioloop import IOLoop
 from tornado.web import RequestHandler, Application
 from tornado.httpserver import HTTPServer
-from nkit4py import Xml2VarBuilder, DatetimeJSONEncoder
+from nkit4py import Xml2VarBuilder, DatetimeJSONEncoder, var2xml
 import json
 import os
 import BaseHTTPServer
+from datetime import *
 
 path = os.path.dirname(os.path.realpath(__file__))
 
@@ -28,7 +29,7 @@ mapping = ["/person",
 mappings = {"1": mapping}
 
 
-def do_mapping():
+def xml2var():
     gen = Xml2VarBuilder(mappings)
     gen.feed(xml)
     target = gen.end()
@@ -39,10 +40,56 @@ def do_mapping():
     )
 
 
-class MainHandler(RequestHandler):
+class Xml2VarHandler(RequestHandler):
     def get(self):
         self.set_header("Content-Type", "application/json; charset=utf-8")
-        self.write(do_mapping())
+        self.write(xml2var())
+
+
+class Var2XmlHandler(RequestHandler):
+    # ENCODING = "UTF-8"
+    ENCODING = "windows-1251"
+    DATA = {
+        "$": {"p1": "в1&v2\"'", "p2": "v2"},
+        "_": "Hello(Привет) world(мир)",
+        "int_число": 1,
+        "float": 1.123456789,
+        "cdata": "text < > & \" '",
+        "list": [[1], 2, 3],
+        "datetime": datetime.now(),
+        "dict": {
+            "$": {"a1": "V1", "a2": "V2"},
+            "int": 1,
+            "float": 1.11234567891234,
+            "sub_string": "text < > & \" '",
+            "list": [1 << 2 << 3]
+        }
+    }
+
+    OPTIONS = {
+        "rootname": "ROOT",
+        "itemname": "item",
+        "xmldec": {
+            "version": "1.0",
+            "encoding": ENCODING,
+            "standalone": True,
+        },
+        "pretty": {
+            "indent": "  ",
+            "newline": "\n",
+        },
+        "attrkey": "$",
+        "textkey": "_",
+        "cdata": ["cdata"],
+        "float_precision": 10,
+        "date_time_format": "%Y-%m-%d %H:%M:%S"
+    }
+
+    def get(self):
+        # self.set_header("Content-Type", "text/plain; charset=UTF-8")
+        # self.write("qweqwe")
+        self.set_header("Content-Type", "text/xml; charset=" + Var2XmlHandler.ENCODING)
+        self.write(var2xml(Var2XmlHandler.DATA, Var2XmlHandler.OPTIONS))
 
 
 class RedirectHandler(RequestHandler):
@@ -71,14 +118,15 @@ class Handler2(RequestHandler):
 
 def run_tornado():
     app = Application([
-        tornado.web.url(r"/", MainHandler),
+        tornado.web.url(r"/xml2var", Xml2VarHandler),
+        tornado.web.url(r"/var2xml", Var2XmlHandler),
         tornado.web.url(r"/1/", Handler1),
         tornado.web.url(r"/2/", Handler2),
         tornado.web.url(r"/redirect/", RedirectHandler)
     ])
     server = HTTPServer(app)
     server.bind(8888)
-    server.start(1)  # 0 - forks one process per cpu
+    server.start(3)  # 0 - forks one process per cpu
     IOLoop.current().start()
 
 
@@ -87,7 +135,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('content-type', 'application/json; charset=utf-8')
         self.end_headers()
-        self.wfile.write(do_mapping())
+        self.wfile.write(xml2var())
 
     def log_message(self, format, *args):
         return

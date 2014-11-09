@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from nkit4py import Xml2VarBuilder, DatetimeJSONEncoder
+from nkit4py import Xml2VarBuilder, DatetimeJSONEncoder, var2xml
 import json
 from datetime import *
 
@@ -367,6 +367,45 @@ if builder.get("persons") != persons:
 #
 #-------------------------------------------------------------------------------
 # pring_json(persons)
+
+data = {
+    "$": {"p1": "в1&v2\"'", "p2": "v2"},
+    "_": "Hello(Привет) world(мир)",
+    "int_число": 1,
+    "float": 1.123456789,
+    "cdata": "text < > & \" '",
+    "list": [[1], 2, 3],
+    "datetime": datetime.now(),
+    "dict": {
+        "$": {"a1": "V1", "a2": "V2"},
+        "int": 1,
+        "float": 1.11234567891234,
+        "sub_string": "text < > & \" '",
+        "list": [1 << 2 << 3]
+    }
+}
+
+options = {
+    "rootname": "ROOT",
+    "itemname": "item",
+    "xmldec": {
+        "version": "1.0",
+        #"encoding": "UTF-8",
+        "encoding": "windows-1251",
+        "standalone": True,
+    },
+    "pretty": {
+        "indent": "  ",
+        "newline": "\n",
+    },
+    "attrkey": "$",
+    "textkey": "_",
+    "cdata": ["cdata"],
+    "float_precision": 10,
+    "date_time_format": "%Y-%m-%d %H:%M:%S"
+}
+
+print var2xml(data, options)
 
 print "ok"
 sys.exit(0)
