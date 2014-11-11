@@ -46,7 +46,6 @@ namespace nkit
   static PyObject * dt_module_;
   static PyObject * dt_;
   static PyObject * fromtimestamp_;
-//  static PyObject * strftime_;
   static PyObject * traceback_module_;
   static PyObject * traceback_dict_;
   static PyObject * traceback_format_exception_;
@@ -151,7 +150,7 @@ namespace nkit
 
     typedef PyObject* type;
 
-    static type GetUndefined()
+    static const type & GetUndefined()
     {
         Py_INCREF(Py_None);
         return Py_None;
@@ -500,11 +499,16 @@ namespace nkit
               precision);
     }
 
-    static bool GetByKey(const PyObject * data, const std::string & key,
-            PyObject ** value)
+    static PyObject * GetByKey(const PyObject * data, const std::string & key,
+            bool * found)
     {
-      *value = PyDict_GetItemString(const_cast<PyObject *>(data), key.c_str());
-      return *value != NULL;
+      PyObject * ret =
+    		  PyDict_GetItemString(const_cast<PyObject *>(data), key.c_str());
+      *found = ret != NULL;
+      if (*found)
+        return ret;
+      else
+        return Py_None;
     }
   };
 
@@ -987,10 +991,6 @@ PyMODINIT_FUNC initnkit4py(void)
   assert(nkit::fromtimestamp_);
   Py_INCREF(nkit::fromtimestamp_);
 
-//  nkit::strftime_ = PyObject_GetAttrString(nkit::dt_, "strftime");
-//  assert(nkit::strftime_);
-//  Py_INCREF(nkit::strftime_);
-//
   // class DatetimeJSONEncoder
   nkit::main_module_ = PyImport_AddModule("__main__");
   Py_INCREF(nkit::main_module_);
