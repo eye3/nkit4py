@@ -47,15 +47,17 @@ class Xml2VarHandler(RequestHandler):
 
 
 class Var2XmlHandler(RequestHandler):
-    # ENCODING = "UTF-8"
-    ENCODING = "windows-1251"
+    ENCODING = "UTF-8"
+    # ENCODING = "windows-1251"
     DATA = {
         "$": {"p1": "в1&v2\"'", "p2": "v2"},
         "_": "Hello(Привет) world(мир)",
         "int_число": 1,
-        "bool": True,
+        "true": True,
+        "false": False,
         "float": 1.123456789,
-        "cdata": "text < > & \" '",
+        "cdata1": "text < > & \" '",
+        "cdata2": "%^&*()-=+ < > & \" '",
         "list": [[1, 2], 2, 3],
         "datetime": datetime.now(),
         "dict": {
@@ -81,9 +83,11 @@ class Var2XmlHandler(RequestHandler):
         },
         "attrkey": "$",
         "textkey": "_",
-        "cdata": ["cdata"],
+        "cdata": ["cdata1", "cdata2"],
         "float_precision": 10,
-        "date_time_format": "%Y-%m-%d %H:%M:%S"
+        "date_time_format": "%Y-%m-%d %H:%M:%S",
+        "bool_true": "Yes",
+        "bool_false": "No"
     }
 
     def get(self):

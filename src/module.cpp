@@ -480,6 +480,12 @@ namespace nkit
       return ret;
     }
 
+    static bool IsBool(const PyObject * data)
+    {
+      bool ret = PyBool_Check(const_cast<PyObject *>(data));
+      return ret;
+    }
+
     static std::string GetString(const PyObject * data)
     {
       std::string ret, err;
@@ -498,6 +504,12 @@ namespace nkit
     {
       return string_cast(PyFloat_AsDouble(const_cast<PyObject *>(data)),
               precision);
+    }
+
+    static const std::string & GetStringAsBool(const PyObject * data,
+        const std::string & true_format, const std::string & false_format)
+    {
+      return data == Py_True ? true_format: false_format;
     }
 
     static PyObject * GetByKey(const PyObject * data, const std::string & key,
