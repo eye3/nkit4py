@@ -3,7 +3,7 @@
 * [Introduction](#introduction)
 * [Installation](#installation)
   * [Requirements](#requirements)
-  * [On Linux & Mac OS](#on-linux-mac-os)
+  * [On Linux & Mac OS](#on-linux--mac-os)
   * [On Windows](#on-windows)
 * [XML to Python data conversion](#xml-to-python-data-conversion)
   * [Getting started](#getting-started)
