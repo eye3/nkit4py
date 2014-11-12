@@ -178,6 +178,8 @@ Suppose, we have this xml string:
 </any_name>
 ```
 
+With this script we cat generate two data structures:
+
 ```python
 from nkit4py import Xml2VarBuilder
 
