@@ -1,5 +1,3 @@
-
-
 <!-- toc -->
 
 * [Introduction](#introduction)
@@ -22,8 +20,6 @@
 * [Author](#author)
 
 <!-- toc stop -->
-
-
 
 # Introduction
 
