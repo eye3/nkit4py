@@ -30,7 +30,7 @@ nkit4py - is a [nkit](https://github.com/eye3/nkit.git) C++ library port to Pyth
 
 With nkit4py module you can convert XML string to Python data and vise versa.
 
-### With XML-to-Python-data possibilities you can:
+**With XML-to-Python-data possibilities you can:**
  
 - Create Python data structures, which are different from the structure 
   of XML source.
@@ -58,7 +58,7 @@ memory when parsing huge XML files.
 Module supports not only native Expat XML encodings, but also many others
 (see /deps/nkit/src/encoding/langs.inc)
 
-### With Python-data-to-XML possibilities you can:
+**With Python-data-to-XML possibilities you can:**
 
 - Create xml string with the same structure as Python data
 - Define root element name of result xml string
