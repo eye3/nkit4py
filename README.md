@@ -8,7 +8,7 @@
   * [On Linux & Mac OS](#on-linux-mac-os)
   * [On Windows](#on-windows)
 * [XML to Python data conversion](#xml-to-python-data-conversion)
-  * [Quick start](#quick-start)
+  * [Getting started](#getting-started)
   * [Building simple object from xml string (last 'person' xml element will be used)](#building-simple-object-from-xml-string-last-person-xml-element-will-be-used)
   * [Building list-of-objects from xml string](#building-list-of-objects-from-xml-string)
   * [Building list-of-objects-with-lists from xml string](#building-list-of-objects-with-lists-from-xml-string)
@@ -119,6 +119,8 @@ For MSVS 2013:
 
 # XML to Python data conversion
 
+## Getting started
+
 Suppose, we have this xml string:
 
 ```xml
@@ -175,8 +177,6 @@ Suppose, we have this xml string:
     </person>
 </any_name>
 ```
-
-## Quick start
 
 ```python
 from nkit4py import Xml2VarBuilder
