@@ -704,9 +704,9 @@ If no *rootname* has been provided then *xmldec* has no effect.
 If no *xmldec* or *rootname* has been provided then *itemname* will be used as name for root objects.
 Sub-options:
 
-    - *version*: xml version (always 1.0);
-    - *encoding*: "UTF-8" or some other encodings (see /deps/nkit/src/encoding/langs.inc for list of supported encodings);
-    - *standalone*: true or false;
+    - *version*: xml version (always 1.0)
+    - *encoding*: "UTF-8" or some other encodings (see /deps/nkit/src/encoding/langs.inc for list of supported encodings)
+    - *standalone*: true or false
 
 - **pretty**: pretty XML - with indents and custom newlines. Default - NO pretty print, i.e. print XML in single line. Sub-options:
 
