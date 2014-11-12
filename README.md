@@ -2,10 +2,9 @@
 
 nkit4py - is a [nkit](https://github.com/eye3/nkit.git) C++ library port to Python.
 
-Currently, only an XML to Python object or list converter and filter
-is exported to Python from nkit library.
+With nkit4py module you can convert XML string to Python data and vise versa.
 
-With nkit4py module you can:
+### With XML-to-Python-data possibilities you can:
  
 - Create Python data structures, which are different from the structure 
   of XML source.
@@ -20,6 +19,8 @@ With nkit4py module you can:
   fetched from XML source.
   Integers, numbers, strings, datetimes and booleans are supported.
 
+- Control progress of chunked download of big XML string and cancel this download
+
 - With extra options you can tune some aspects of conversion:
 	- trim text data
 	- explicitly define white space characters for trim option
@@ -29,7 +30,19 @@ Conversion is carried out using SAX parser Expat, so it's fast and uses less
 memory when parsing huge XML files.
 
 Module supports not only native Expat XML encodings, but also many others
-(see /deps/nkit/src/vx/encodings_inc_gen.cpp)
+(see /deps/nkit/src/encoding/langs.inc)
+
+### With Python-data-to-XML possibilities you can:
+
+- Define root element name of result xml string
+- Define item element name for lists
+- Define encoding of result xml string
+- Pretty print with custom indentation and newline characters
+- Define special object key name for attributes
+- Define special object key name for text
+- Define which element of result xml string must contain CDATA section
+- Define precision for float numbers
+- Define format for Date objects
 
 
 # Installation
@@ -74,7 +87,7 @@ For MSVS 2013:
     pip install nkit4py --pre
 
 
-# Usage
+# XML to Python data conversion
 
 Suppose, we have this xml string:
 
@@ -500,6 +513,9 @@ class XmlDownloader:
         builder = nkit4py.Xml2VarBuilder({"any_mapping_name": mapping})
         def on_chunk(chunk): # this callback will be called many times
             builder.feed(chunk)
+            lst = builder.get("any_mapping_name") # get currently constructed list
+            print len(lst)
+            # del lst[:] # uncomment this to clear list every time
         yield self.http.fetch(HTTPRequest(url, streaming_callback=on_chunk))
         raise tornado.gen.Return(builder.end()["any_mapping_name"])
 
@@ -524,7 +540,7 @@ if __name__ == "__main__":
 ```
 
 
-# Options
+## Options
 
 With options you can tune some aspects of conversion:
  
@@ -559,7 +575,7 @@ Following options are supported:
    True - unicode, False - string. Default - True.
 
 
-# Notes
+## Notes
 
 Possible scalar types:
 
@@ -591,6 +607,120 @@ If you want to change key names, use this notation:
 
     "/path/to/element -> newKeyName": ...
     "/path/to/element/@attribute -> newKeyName": ...
+
+# Python data to XML conversion
+
+## Quick start
+
+```python
+import nkit4py
+
+ENCODING = "UTF-8"
+# ENCODING = "windows-1251"
+DATA = {
+    "$": {"p1": "в1&v2\"'", "p2": "v2"},
+    "_": "Hello(Привет) world(мир)",
+    "int_число": 1,
+    "true": True,
+    "false": False,
+    "float": 1.123456789,
+    "cdata1": "text < > & \" '",
+    "cdata2": "%^&*()-=+ < > & \" '",
+    "list": [[1, 2], 2, 3],
+    "datetime": datetime.now(),
+    "dict": {
+        "$": {"a1": "V1", "a2": "V2"},
+        "int": 1,
+        "float": 1.11234567891234,
+        "sub_string": "text < > & \" '",
+        "list": [[1], 2, 3]
+    }
+}
+
+OPTIONS = {
+    "rootname": "ROOT",
+    "itemname": "item",
+    "xmldec": {
+        "version": "1.0",
+        "encoding": ENCODING,
+        "standalone": True,
+    },
+    "pretty": {
+        "indent": "  ",
+        "newline": "\n",
+    },
+    "attrkey": "$",
+    "textkey": "_",
+    "cdata": ["cdata1", "cdata2"],
+    "float_precision": 10,
+    "date_time_format": "%Y-%m-%d %H:%M:%S",
+    "bool_true": "Yes",
+    "bool_false": "No"
+}
+
+print var2xml(DATA, OPTIONS)
+```
+
+Output:
+
+```xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ROOT p2="v2" p1="в1&amp;v2&quot;&apos;">
+  <false>No</false>
+  <float>1.1234567890</float>
+  <cdata2><![CDATA[%^&*()-=+ < > & " ']]></cdata2>
+  <cdata1><![CDATA[text < > & " ']]></cdata1>
+  <datetime>2014-11-12 20:13:34</datetime>
+  <true>Yes</true>
+  <int_число>1</int_число>
+  <list>
+    <item>1</item>
+    <item>2</item>
+  </list>
+  <list>2</list>
+  <list>3</list>
+  <dict a1="V1" a2="V2">
+    <int>1</int>
+    <list>
+      <item>1</item>
+    </list>
+    <list>2</list>
+    <list>3</list>
+    <float>1.1123456789</float>
+    <sub_string>text &lt; &gt; &amp; &quot; &apos;</sub_string>
+  </dict>
+  Hello(Привет) world(мир)
+</ROOT>
+```
+
+## Options
+
+Following options are supported:
+
+- **rootname**: name of root element;
+- **itemname**: default element name for Python list items;
+- **xmldec**: XML declaration. Default - NO XML declaration.
+If no *rootname* has been provided then *xmldec* has no effect.
+If no *xmldec* or *rootname* has been provided then *itemname* will be used as name for root objects.
+Sub-options:
+
+    - *version*: xml version (always 1.0);
+    - *encoding*: "UTF-8" or some other encodings (see /deps/nkit/src/encoding/langs.inc);
+    - *standalone*: true or false;
+
+- **pretty**: pretty XML - with indents and custom newlines. Default - NO pretty print, i.e. print XML in single line. Sub-options:
+
+    - *indent*: any string for indentation;
+    - *newline*: any string for line ending (default '\n');
+    
+- **attrkey**: any string for Object key name, that holds attributes for element. Default '$';
+- **textkey**: any string for Object key name, that holds text for element. Default '_';
+- **cdata**: array of key names whose values mast be print to XML string as CDATA;
+- **float_precision**: for float numbers - number of symbols after '.' to be printed;
+- **date_time_format**: format string of Date objects;
+- **bool_true**: representation for 'true' boolean value;
+- **bool_false**: representation for 'false' boolean value; 
+
 
 # Author
 
