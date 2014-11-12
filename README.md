@@ -1,3 +1,29 @@
+
+
+<!-- toc -->
+
+* [Introduction](#introduction)
+* [Installation](#installation)
+  * [Requirements](#requirements)
+  * [On Linux & Mac OS](#on-linux-mac-os)
+  * [On Windows](#on-windows)
+* [XML to Python data conversion](#xml-to-python-data-conversion)
+  * [Quick start](#quick-start)
+  * [Building simple object from xml string (last 'person' xml element will be used)](#building-simple-object-from-xml-string-last-person-xml-element-will-be-used)
+  * [Building list-of-objects from xml string](#building-list-of-objects-from-xml-string)
+  * [Building list-of-objects-with-lists from xml string](#building-list-of-objects-with-lists-from-xml-string)
+  * [Creating keys in object for non-existent xml elements](#creating-keys-in-object-for-non-existent-xml-elements)
+  * [Building data structures from big XML source, reading it chunk by chunk](#building-data-structures-from-big-xml-source-reading-it-chunk-by-chunk)
+  * [Options](#options)
+  * [Notes](#notes)
+* [Python data to XML conversion](#python-data-to-xml-conversion)
+  * [Quick start](#quick-start)
+  * [Options](#options)
+* [Author](#author)
+
+<!-- toc stop -->
+
+
 # Introduction
 
 nkit4py - is a [nkit](https://github.com/eye3/nkit.git) C++ library port to Python.
