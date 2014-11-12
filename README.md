@@ -68,7 +68,7 @@ This module must be compiled, so you have to install "build essentials"
 
 ## On Linux & Mac OS
 
-    pip install nkit4py --pre
+    pip install git+https://github.com/eye3/nkit4py.git
 
 ## On Windows
 
@@ -78,13 +78,13 @@ For MSVS 2012:
 
     SET VS90COMNTOOLS=%VS110COMNTOOLS%
 
-    pip install nkit4py --pre
+    pip install git+https://github.com/eye3/nkit4py.git
 
 For MSVS 2013:
 
     SET VS90COMNTOOLS=%VS120COMNTOOLS%
 
-    pip install nkit4py --pre
+    pip install git+https://github.com/eye3/nkit4py.git
 
 
 # XML to Python data conversion

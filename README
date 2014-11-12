@@ -4,46 +4,58 @@ Introduction
 nkit4py - is a nkit C++ library port to Python (see https://github.com/eye3/nkit.git).
 There is the same port to Node.js - nkit4nodejs (see https://github.com/eye3/nkit4nodejs.git)
 
-Currently, only an XML to Python object or list converter and filter
-is exported to Python from nkit library.
+With nkit4py module you can convert XML string to Python data and vise versa.
 
-With nkit4py module version 1.0 you can:
+With XML-to-Python-data possibilities you can:
+----------------------------------------------
  
 - Create Python data structures, which are different from the structure 
   of XML source.
   
+- Create multiple Python structures from one XML source.
+
 - Explicitly identify those elements and attributes in XML source that you
   want to use for building Python data structures.
   Thus, it's possible to filter out unnecessary XML-data.
-  
-- Explicitly define Python type of scalar data, fetched from XML source.
-  Integers, numbers, string or unicode, datetimes and booleans are supported.
-  
-Conversion is carried out using SAX parser Expat, so it's fast and uses less 
+
+- Explicitly define Python type of scalar (primitive) data,
+  fetched from XML source.
+  Integers, numbers, strings, datetimes and booleans are supported.
+
+- Control progress of chunked download of big XML string and cancel this download
+
+- With extra options you can tune some aspects of conversion:
+	- trim text data
+	- explicitly define white space characters for trim option
+	- choose unicode or string type for text data
+
+Conversion is carried out using SAX parser Expat, so it's fast and uses less
 memory when parsing huge XML files.
 
 Module supports not only native Expat XML encodings, but also many others
-(see /deps/nkit/src/vx/encodings_inc_gen.cpp)
+(see /deps/nkit/src/encoding/langs.inc)
 
-With nkit4py module version 2.0 you also can:
+With Python-data-to-XML possibilities you can:
+----------------------------------------------
 
-- Create multiple Python structures from one XML source.
+- Define root element name of result xml string
+- Define item element name for lists
+- Define encoding of result xml string
+- Pretty print with custom indentation and newline characters
+- Define special object key name for attributes
+- Define special object key name for text
+- Define which element of result xml string must contain CDATA section
+- Define precision for float numbers
+- Define format for Date objects
 
-- With extra options you can tune some aspects of conversion:
-	- trim out white spaces
-	- explicitly define white space characters
-	- choose unicode or string type for text scalar values
 
-NOTE: API interface of version 2.0 doesn't compatible with version 1.0
-
-
-Installation (version 1.0)
-==========================
+Installation
+============
 
 On Linux & Mac OS
 -----------------
 
-    pip install nkit4py==1.0.44
+    pip install nkit4py
 
 On Windows
 ----------
@@ -54,27 +66,18 @@ For MSVS 2012:
 
     SET VS90COMNTOOLS=%VS110COMNTOOLS%
 
-    pip install nkit4py==1.0.44
+    pip install nkit4py
 
 For MSVS 2013:
 
     SET VS90COMNTOOLS=%VS120COMNTOOLS%
 
-    pip install nkit4py==1.0.44
-
-
-Installation (version 2.0 - beta)
-=================================
-
-pip install nkit4py --pre
-
+    pip install nkit4py
 
 Usage
 =====
 
-Version 1.0: https://github.com/eye3/nkit4py/tree/v1.0#usage
-
-Version 2.0: https://github.com/eye3/nkit4py
+See https://github.com/eye3/nkit4py
 
 Author
 ======
