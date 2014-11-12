@@ -658,7 +658,7 @@ OPTIONS = {
     "bool_false": "No"
 }
 
-print var2xml(DATA, OPTIONS)
+print nkit4py.var2xml(DATA, OPTIONS)
 ```
 
 Output:
