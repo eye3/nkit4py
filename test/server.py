@@ -53,16 +53,17 @@ class Var2XmlHandler(RequestHandler):
         "$": {"p1": "в1&v2\"'", "p2": "v2"},
         "_": "Hello(Привет) world(мир)",
         "int_число": 1,
+        "bool": True,
         "float": 1.123456789,
         "cdata": "text < > & \" '",
-        "list": [[1], 2, 3],
+        "list": [[1, 2], 2, 3],
         "datetime": datetime.now(),
         "dict": {
             "$": {"a1": "V1", "a2": "V2"},
             "int": 1,
             "float": 1.11234567891234,
             "sub_string": "text < > & \" '",
-            "list": [1 << 2 << 3]
+            "list": [[1], 2, 3]
         }
     }
 

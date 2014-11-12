@@ -152,8 +152,9 @@ namespace nkit
 
     static const type & GetUndefined()
     {
-        Py_INCREF(Py_None);
-        return Py_None;
+      static PyObject * WarningWorkaround = Py_None;
+      Py_INCREF(Py_None);
+      return WarningWorkaround;
     }
 
     PythonBuilderPolicy(const detail::Options & options)
