@@ -19,9 +19,11 @@
 * [Python data to XML conversion](#python-data-to-xml-conversion)
   * [Quick start](#quick-start)
   * [Options](#options)
+* [Change log](#change-log)
 * [Author](#author)
 
 <!-- toc stop -->
+
 
 
 # Introduction
