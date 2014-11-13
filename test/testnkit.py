@@ -388,10 +388,10 @@ data = {
 options = {
     "rootname": "ROOT",
     "itemname": "item",
+    "encoding": "UTF-8",
+    #"encoding": "windows-1251",
     "xmldec": {
         "version": "1.0",
-        "encoding": "UTF-8",
-        #"encoding": "windows-1251",
         "standalone": True,
     },
     "pretty": {
@@ -407,6 +407,7 @@ options = {
 
 print var2xml(data, options)
 
+print var2xml([], options)
 
 print "ok"
 sys.exit(0)

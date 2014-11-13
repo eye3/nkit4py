@@ -1,9 +1,11 @@
+
+
 <!-- toc -->
 
 * [Introduction](#introduction)
 * [Installation](#installation)
   * [Requirements](#requirements)
-  * [On Linux & Mac OS](#on-linux--mac-os)
+  * [On Linux and Mac OS](#on-linux-and-mac-os)
   * [On Windows](#on-windows)
 * [XML to Python data conversion](#xml-to-python-data-conversion)
   * [Getting started](#getting-started)
@@ -20,6 +22,7 @@
 * [Author](#author)
 
 <!-- toc stop -->
+
 
 # Introduction
 
@@ -91,7 +94,7 @@ This module must be compiled, so you have to install "build essentials"
 	
 - in Mac OS use XCode & brew
 
-## On Linux & Mac OS
+## On Linux and Mac OS
 
     pip install nkit4py
 
@@ -667,9 +670,9 @@ DATA = {
 OPTIONS = {
     "rootname": "ROOT",
     "itemname": "item",
+    "encoding": ENCODING,
     "xmldec": {
         "version": "1.0",
-        "encoding": ENCODING,
         "standalone": True,
     },
     "pretty": {
@@ -726,13 +729,10 @@ Following options are supported:
 
 - **rootname**: name of root element;
 - **itemname**: default element name for Python list items. Default - 'item';
-- **xmldec**: XML declaration. Default - NO XML declaration.
-If no *rootname* has been provided then *xmldec* has no effect.
-If no *xmldec* or *rootname* has been provided then *itemname* will be used as name for root objects.
-Sub-options:
+- **encoding**: "UTF-8" or some other encodings (see */deps/nkit/src/encoding/langs.inc* for list of supported encodings). Default - "UTF-8";
+- **xmldec**: XML declaration. Default - NO XML declaration. Sub-options:
 
-    - *version*: xml version (always 1.0);
-    - *encoding*: "UTF-8" or some other encodings (see */deps/nkit/src/encoding/langs.inc* for list of supported encodings);
+    - *version*: xml version;
     - *standalone*: true or false;
 
 - **pretty**: pretty XML - with indents and custom newlines. Default - NO pretty print, i.e. print XML in single line. Sub-options:
@@ -750,6 +750,25 @@ Default "%Y-%m-%d %H:%M:%S";
 - **bool_true**: representation for 'true' boolean value. Default '1';
 - **bool_false**: representation for 'false' boolean value. Default '0';
 
+If no *rootname* has been provided then *xmldec* will no effect.
+If **data** is Object (not Array) then *attrkey* will no effect for root Object.
+
+If **data** is Array then *itemname* will be used as element name for its items.
+
+# Change log
+
+- 2.2:
+    - Options changes for nkit4py.var2xml(): standalone 'encoding' option.
+      In previous version 'encoding' option was in 'xmldec'
+      
+- 2.1:
+    - nkit4py.var2xml() method for converting Python data to XML
+    
+- 2.0:
+    - Multi-mappings and options for nkit4py.Xml2VarBuilder class
+    
+- 1.X:
+    - nkit4py.Xml2VarBuilder class for converting XML to Python data
 
 # Author
 

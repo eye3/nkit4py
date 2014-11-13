@@ -47,8 +47,8 @@ class Xml2VarHandler(RequestHandler):
 
 
 class Var2XmlHandler(RequestHandler):
-    ENCODING = "UTF-8"
-    # ENCODING = "windows-1251"
+    # ENCODING = "UTF-8"
+    ENCODING = "windows-1251"
     DATA = {
         "$": {"p1": "в1&v2\"'", "p2": "v2"},
         "_": "Hello(Привет) world(мир)",
@@ -72,9 +72,9 @@ class Var2XmlHandler(RequestHandler):
     OPTIONS = {
         "rootname": "ROOT",
         "itemname": "item",
+        "encoding": ENCODING,
         "xmldec": {
             "version": "1.0",
-            "encoding": ENCODING,
             "standalone": True,
         },
         "pretty": {
@@ -91,8 +91,6 @@ class Var2XmlHandler(RequestHandler):
     }
 
     def get(self):
-        # self.set_header("Content-Type", "text/plain; charset=UTF-8")
-        # self.write("qweqwe")
         self.set_header("Content-Type", "text/xml; charset=" + Var2XmlHandler.ENCODING)
         self.write(var2xml(Var2XmlHandler.DATA, Var2XmlHandler.OPTIONS))
 
