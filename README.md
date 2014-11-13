@@ -735,7 +735,7 @@ Following options are supported:
 - **xmldec**: XML declaration. Default - NO XML declaration. Sub-options:
 
     - *version*: xml version;
-    - *standalone*: true or false;
+    - *standalone*: True or False;
 
 - **pretty**: pretty XML - with indents and custom newlines. Default - NO pretty print, i.e. print XML in single line. Sub-options:
 
