@@ -18,11 +18,12 @@
   * [Notes](#notes)
 * [Python data to XML conversion](#python-data-to-xml-conversion)
   * [Quick start](#quick-start)
-  * [Options](#options)
+  * [Options for xml2var](#options-for-xml2var)
 * [Change log](#change-log)
 * [Author](#author)
 
 <!-- toc stop -->
+
 
 
 
@@ -725,7 +726,7 @@ Output:
 </ROOT>
 ```
 
-## Options
+## Options for xml2var
 
 Following options are supported:
 
