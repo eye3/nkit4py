@@ -389,7 +389,6 @@ options = {
     "rootname": "ROOT",
     "itemname": "item",
     "encoding": "UTF-8",
-    #"encoding": "windows-1251",
     "xmldec": {
         "version": "1.0",
         "standalone": True,
