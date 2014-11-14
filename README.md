@@ -628,7 +628,8 @@ options = {"attrkey": "$"}
 mapping = ["/person",
     {
         "/name": "string",
-        "/married": {"/ -> Now": "string"}
+        "/married": {"/ -> Now": "string"} # Elements '/person/married' has attributes
+                                           # Module will collect them
     }
 ]
 
@@ -647,7 +648,7 @@ Value of married_info:
   {
     "married": {
       "Now": "Yes", 
-      "$": { // <- Key '$' will hold all element attributes
+      "$": { // <- Key '$' will hold all attributes for '/person/married' elements
         "firstTime": "No"
       }
     }, 
