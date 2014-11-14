@@ -2,7 +2,6 @@ Introduction
 ============
 
 nkit4py - is a nkit C++ library port to Python (see https://github.com/eye3/nkit.git).
-There is the same port to Node.js - nkit4nodejs (see https://github.com/eye3/nkit4nodejs.git)
 
 With nkit4py module you can convert XML string to Python data and vise versa.
 
@@ -28,6 +27,7 @@ With XML-to-Python-data possibilities you can:
 	- trim text data
 	- explicitly define white space characters for trim option
 	- choose unicode or string type for text data
+    - define special key to collect all element attributes
 
 Conversion is carried out using SAX parser Expat, so it's fast and uses less
 memory when parsing huge XML files.
@@ -38,21 +38,23 @@ Module supports not only native Expat XML encodings, but also many others
 With Python-data-to-XML possibilities you can:
 ----------------------------------------------
 
+- Create xml string with the same structure as Python data
 - Define root element name of result xml string
-- Define item element name for lists
-- Define encoding of result xml string (see /deps/nkit/src/encoding/langs.inc)
+- Define default element name for list items
+- Define encoding of result xml string
 - Pretty print with custom indentation and newline characters
 - Define special object key name for attributes
 - Define special object key name for text
-- Define which element of result xml string must contain CDATA section
+- Define which elements of result xml string must contain CDATA section
 - Define precision for float numbers
 - Define format for Date objects
+- Define representation for *True* and *False* values
 
 
 Installation
 ============
 
-On Linux & Mac OS
+On Linux and Mac OS
 -----------------
 
     pip install nkit4py

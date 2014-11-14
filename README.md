@@ -54,6 +54,7 @@ With nkit4py module you can convert XML string to Python data and vise versa.
 	- trim text data
 	- explicitly define white space characters for trim option
 	- choose unicode or string type for text data
+	- define special key to collect all element attributes
 
 Conversion is carried out using SAX parser Expat, so it's fast and uses less 
 memory when parsing huge XML files.
@@ -65,7 +66,7 @@ Module supports not only native Expat XML encodings, but also many others
 
 - Create xml string with the same structure as Python data
 - Define root element name of result xml string
-- Define item element name for lists
+- Define default element name for list items
 - Define encoding of result xml string
 - Pretty print with custom indentation and newline characters
 - Define special object key name for attributes
@@ -610,6 +611,57 @@ Following options are supported:
    String. Default - "\t\n\r ", i.e. tab, new line, carriage return and space.
 - "unicode": Boolean flag that defines type of created python textual data.
    True - unicode, False - string. Default - True.
+- "attrkey": Special key for object-mapping for all element attributes. See example below.
+
+### 'attrkey' option
+
+If defined, this option cause nkit4py module to collect all element attributes for all
+object-mappings (if corresponding elements has attributes, of course).
+
+Example:
+
+```python
+options = {"attrkey": "$"}
+
+mapping = ["/person",
+    {
+        "/name": "string",
+        "/married": {"/ -> Now": "string"}
+    }
+]
+
+mappings = {"married_info": mapping}
+
+builder = Xml2VarBuilder(options, mappings)
+builder.feed(xml_string)
+result = builder.end()
+married_info = result["married_info"]
+```
+
+Value of married_info:
+
+```json
+[
+  {
+    "married": {
+      "Now": "Yes", 
+      "$": { // <- Key '$' will hold all element attributes
+        "firstTime": "No"
+      }
+    }, 
+    "name": "Jack"
+  }, 
+  {
+    "married": {
+      "Now": "Yes", 
+      "$": {
+        "firstTime": "Yes"
+      }
+    }, 
+    "name": "Boris"
+  }
+]
+```
 
 
 ## Notes
@@ -736,13 +788,15 @@ Following options are supported:
 
 - **rootname**: name of root element;
 - **itemname**: default element name for Python list items. Default - 'item';
-- **encoding**: "UTF-8" or some other encodings (see */deps/nkit/src/encoding/langs.inc* for list of supported encodings). Default - "UTF-8";
+- **encoding**: "UTF-8" or some other encodings (see */deps/nkit/src/encoding/langs.inc* for list of supported encodings).
+Default - "UTF-8";
 - **xmldec**: XML declaration. Default - NO XML declaration. Sub-options:
 
     - *version*: xml version;
     - *standalone*: True or False;
 
-- **pretty**: pretty XML - with indents and custom newlines. Default - NO pretty print, i.e. print XML in single line. Sub-options:
+- **pretty**: pretty XML - with indents and custom newlines. Default - NO pretty print, i.e. print XML in single line.
+Sub-options:
 
     - *indent*: any string for indentation;
     - *newline*: any string for line ending (default '\n');
@@ -757,8 +811,9 @@ Default "%Y-%m-%d %H:%M:%S";
 - **bool_true**: representation for 'true' boolean value. Default '1';
 - **bool_false**: representation for 'false' boolean value. Default '0';
 
-If no *rootname* has been provided then *xmldec* will no effect.
-If **data** is Object (not Array) then *attrkey* will no effect for root Object.
+If NO *rootname* has been provided then *xmldec* will no effect.
+
+If NO *rootname* has been provided and **data** is Object (not Array) then *attrkey* option will no effect for root Object.
 
 If **data** is Array then *itemname* will be used as element name for its items.
 
@@ -767,6 +822,7 @@ If **data** is Array then *itemname* will be used as element name for its items.
 - 2.2:
     - Options changes for nkit4py.var2xml(): standalone 'encoding' option.
       In previous version 'encoding' option was in 'xmldec'
+    - New 'attrkey' option for nkit4py.Xml2VarBuilder for collecting all element attributes
       
 - 2.1:
     - nkit4py.var2xml() method for converting Python data to XML

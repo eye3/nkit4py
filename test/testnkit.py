@@ -326,48 +326,54 @@ if builder.get("persons") != persons:
     print "Error #2.4"
     sys.exit(1)
 
-#-------------------------------------------------------------------------------
-# mapping = ["/person",
-#     {
-#         "/photos": ["/*", {
-#             "/ -> url" : "string",
-#             "/width": "integer|0",
-#             "/height": "integer|0"
-#         }],
-#         "/name": "string"
-#     }
-# ]
-#
-# mappings = {"persons": mapping}
-#
-# builder = Xml2VarBuilder(mappings)
-# builder.feed(xml_string)
-# result = builder.end()
-# persons = result["persons"]
-#
-#-------------------------------------------------------------------------------
-# mapping = ["/person",
-#     {
-#         "/*": "string"
-#     }
-# ]
-#
-# mappings = {"persons": mapping}
-#
-# options = {
-#     "trim": True,
-#     "white_spaces": " \t\n\r",
-#     "unicode": False
-# }
-#
-# builder = Xml2VarBuilder(options, mappings)
-# builder.feed(xml_string)
-# result = builder.end()
-# persons = result["persons"]
-#
-#-------------------------------------------------------------------------------
-# pring_json(persons)
+# -------------------------------------------------------------------------------
+options = {"attrkey": "$"}
 
+mapping = ["/person",
+    {
+        "/name": "string",
+        "/married": {"/ -> Now": "string"}
+    }
+]
+
+mappings = {"persons": mapping}
+
+builder = Xml2VarBuilder(options, mappings)
+builder.feed(xml_string)
+result = builder.end()
+persons = result["persons"]
+
+persons_etalon = [
+  {
+    "married": {
+      "Now": "Yes",
+      "$": {
+        "firstTime": "No"
+      }
+    },
+    "name": "Jack"
+  },
+  {
+    "married": {
+      "Now": "Yes",
+      "$": {
+        "firstTime": "Yes"
+      }
+    },
+    "name": "Boris"
+  }
+]
+
+if persons_etalon != persons:
+    pring_json(persons)
+    pring_json(persons_etalon)
+    print "Error #3.1"
+    sys.exit(1)
+
+print persons
+
+# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 data = {
     "$": {"p1": "в1&v2\"'", "p2": "v2"},
     "_": "Hello(Привет) world(мир)",
