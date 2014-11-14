@@ -15,6 +15,7 @@
   * [Creating keys in object for non-existent xml elements](#creating-keys-in-object-for-non-existent-xml-elements)
   * [Building data structures from big XML source, reading it chunk by chunk](#building-data-structures-from-big-xml-source-reading-it-chunk-by-chunk)
   * [Options](#options)
+    * ['attrkey' option](#attrkey-option)
   * [Notes](#notes)
 * [Python data to XML conversion](#python-data-to-xml-conversion)
   * [Quick start](#quick-start)
@@ -23,6 +24,7 @@
 * [Author](#author)
 
 <!-- toc stop -->
+
 
 
 
