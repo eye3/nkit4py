@@ -15,7 +15,7 @@ def to_json(v):
 
 
 # ------------------------------------------------------------------------------
-def pring_json(v):
+def print_json(v):
     print "-------------------------------------"
     print to_json(v)
 
@@ -207,9 +207,9 @@ for mapping_name, etalon in etalons.items():
     counter += 1
     if res[mapping_name] != etalon:
         print "ETALON of %s:" % mapping_name
-        pring_json(etalon)
+        print_json(etalon)
         print "RESULT of %s:" % mapping_name
-        pring_json(res[mapping_name])
+        print_json(res[mapping_name])
         print "Error #1.%d" % counter
         sys.exit(1)
 
@@ -256,8 +256,8 @@ etalon = [
 ]
 
 if etalon != result:
-    pring_json(etalon)
-    pring_json(result)
+    print_json(etalon)
+    print_json(result)
     print "Error #2.1"
     sys.exit(1)
 
@@ -309,20 +309,20 @@ persons_etalon = [
 ]
 
 if academy_etalon != academy:
-    pring_json(academy)
-    pring_json(academy_etalon)
+    print_json(academy)
+    print_json(academy_etalon)
     print "Error #2.2"
     sys.exit(1)
 
 if persons_etalon != persons:
-    pring_json(persons)
-    pring_json(persons_etalon)
+    print_json(persons)
+    print_json(persons_etalon)
     print "Error #2.3"
     sys.exit(1)
     
 if builder.get("persons") != persons:
-    pring_json(persons)
-    pring_json(builder.get("persons"))
+    print_json(persons)
+    print_json(builder.get("persons"))
     print "Error #2.4"
     sys.exit(1)
 
@@ -365,19 +365,47 @@ persons_etalon = [
 ]
 
 if persons_etalon != persons:
-    pring_json(persons)
-    pring_json(persons_etalon)
+    print_json(persons)
+    print_json(persons_etalon)
     print "Error #3.1"
     sys.exit(1)
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
+
 options = {"trim": True}
 builder = AnyXml2VarBuilder(options)
 builder.feed(xml_string)
-result = builder.end()
+result1 = builder.end()
 
-pring_json(result)
+options = {
+    "rootname": "any_name",
+    "itemname": "item",
+    "encoding": "UTF-8",
+    "xmldec": {
+        "version": "1.0",
+        "standalone": True,
+    },
+    "pretty": {
+        "indent": "\t",
+        "newline": "\n",
+    },
+    "attrkey": "$",
+    "textkey": "_",
+}
+
+tmp = var2xml(result1, options)
+
+options = {"trim": True}
+builder = AnyXml2VarBuilder(options)
+builder.feed(tmp)
+result2 = builder.end()
+
+if result1 != result2:
+    print_json(result1)
+    print_json(result2)
+    print "Error #4.1"
+    sys.exit(1)
 
 # ------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------
