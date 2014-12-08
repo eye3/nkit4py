@@ -262,11 +262,25 @@ namespace nkit
       assert(PyDict_CheckExact(object_));
     }
 
-    void AppendToList( type const & obj )
+    void AppendToList( type const & var )
     {
-      int result = PyList_Append( object_, obj );
+      int result = PyList_Append( object_, var );
       assert(-1 != result);
       NKIT_FORCE_USED(result)
+    }
+
+    void AppendToDictKeyList( std::string const & key, type const & var )
+    {
+      type value = PyDict_GetItemString(object_, key.c_str());
+      if (value && PyList_CheckExact(value))
+        PyList_Append(value, var);
+      else
+      {
+        type list = PyList_New(1);
+        Py_INCREF(var);
+        PyList_SET_ITEM(list, 0, var);
+        SetDictKeyValue(key, list);
+      }
     }
 
     void SetDictKeyValue( std::string const & key, type const & var )
@@ -289,7 +303,8 @@ namespace nkit
   };
 
   typedef VarBuilder<PythonBuilderPolicy> PythonVarBuilder;
-  typedef Xml2VarBuilder<PythonVarBuilder> Xml2PythonBuilder;
+  typedef StructXml2VarBuilder<PythonVarBuilder> MapXml2PythonBuilder;
+  typedef AnyXml2VarBuilder<PythonVarBuilder> AnyXml2PythonBuilder;
 
   ////--------------------------------------------------------------------------
   struct PythonReaderPolicy
@@ -551,14 +566,21 @@ struct SharedPtrHolder
 };
 
 ////----------------------------------------------------------------------------
-struct Xml2PythonBuilderData
+struct MapXml2PythonBuilderData
 {
   PyObject_HEAD;
-  SharedPtrHolder< nkit::Xml2PythonBuilder > * holder_;
+  SharedPtrHolder<nkit::MapXml2PythonBuilder> * holder_;
 };
 
 ////----------------------------------------------------------------------------
-static PyObject* CreatePythonXml2VarBuilder(
+struct AnyXml2PythonBuilderData
+{
+  PyObject_HEAD;
+  SharedPtrHolder<nkit::AnyXml2PythonBuilder> * holder_;
+};
+
+////----------------------------------------------------------------------------
+static PyObject* CreateMapXml2VarBuilder(
     PyTypeObject * type, PyObject * args, PyObject *)
 {
   PyObject * dict1 = NULL;
@@ -611,39 +633,39 @@ static PyObject* CreatePythonXml2VarBuilder(
     return NULL;
   }
 
-  Xml2PythonBuilderData * self =
-      (Xml2PythonBuilderData *)type->tp_alloc( type, 0 );
+  MapXml2PythonBuilderData * self =
+      (MapXml2PythonBuilderData *)type->tp_alloc( type, 0 );
   if (!self)
   {
     PyErr_SetString(Nkit4PyError, "Low memory");
     return NULL;
   }
 
-  nkit::Xml2PythonBuilder::Ptr builder =
-      nkit::Xml2PythonBuilder::Create(options, mappings, &error);
+  nkit::MapXml2PythonBuilder::Ptr builder =
+      nkit::MapXml2PythonBuilder::Create(options, mappings, &error);
   if(!builder)
   {
     PyErr_SetString( Nkit4PyError, error.c_str() );
     return NULL;
   }
   self->holder_ =
-      new SharedPtrHolder< nkit::Xml2PythonBuilder >(builder);
+      new SharedPtrHolder< nkit::MapXml2PythonBuilder >(builder);
 
   return (PyObject *)self;
 }
 
 ////----------------------------------------------------------------------------
-static void DeletePythonXml2VarBuilder(PyObject * self)
+static void DeleteMapXml2VarBuilder(PyObject * self)
 {
-  SharedPtrHolder< nkit::Xml2PythonBuilder > * ptr =
-        ((Xml2PythonBuilderData *)self)->holder_;
+  SharedPtrHolder< nkit::MapXml2PythonBuilder > * ptr =
+        ((MapXml2PythonBuilderData *)self)->holder_;
   if (ptr)
     delete ptr;
   self->ob_type->tp_free(self);
 }
 
 ////----------------------------------------------------------------------------
-static PyObject * feed_method( PyObject * self, PyObject * args )
+static PyObject * map_feed_method( PyObject * self, PyObject * args )
 {
   const char* request = NULL;
   Py_ssize_t size = 0;
@@ -660,8 +682,8 @@ static PyObject * feed_method( PyObject * self, PyObject * args )
     return NULL;
   }
 
-  nkit::Xml2PythonBuilder::Ptr builder =
-      ((Xml2PythonBuilderData *)self)->holder_->ptr_;
+  nkit::MapXml2PythonBuilder::Ptr builder =
+      ((MapXml2PythonBuilderData *)self)->holder_->ptr_;
 
   std::string error("");
   if(!builder->Feed( request, size, false, &error ))
@@ -674,7 +696,7 @@ static PyObject * feed_method( PyObject * self, PyObject * args )
 }
 
 ////----------------------------------------------------------------------------
-static PyObject * get_method( PyObject * self, PyObject * args )
+static PyObject * map_get_method( PyObject * self, PyObject * args )
 {
   const char* mapping_name = NULL;
   int result = PyArg_ParseTuple( args, "s", &mapping_name );
@@ -690,8 +712,8 @@ static PyObject * get_method( PyObject * self, PyObject * args )
     return NULL;
   }
 
-  nkit::Xml2PythonBuilder::Ptr builder =
-      ((Xml2PythonBuilderData *)self)->holder_->ptr_;
+  nkit::MapXml2PythonBuilder::Ptr builder =
+      ((MapXml2PythonBuilderData *)self)->holder_->ptr_;
 
   PyObject * item = builder->var(mapping_name);
   Py_INCREF(item);
@@ -699,10 +721,10 @@ static PyObject * get_method( PyObject * self, PyObject * args )
 }
 
 ////------------------------------------------------------------------------------
-static PyObject * end_method( PyObject * self, PyObject * /*args*/ )
+static PyObject * map_end_method( PyObject * self, PyObject * /*args*/ )
 {
-  nkit::Xml2PythonBuilder::Ptr builder =
-          ((Xml2PythonBuilderData *)self)->holder_->ptr_;
+  nkit::MapXml2PythonBuilder::Ptr builder =
+          ((MapXml2PythonBuilderData *)self)->holder_->ptr_;
 
   std::string empty("");
   std::string error("");
@@ -726,26 +748,26 @@ static PyObject * end_method( PyObject * self, PyObject * /*args*/ )
 }
 
 ////----------------------------------------------------------------------------
-static PyMethodDef xml2var_methods[] =
+static PyMethodDef map_xml2var_methods[] =
 {
-  { "feed", feed_method, METH_VARARGS, "Usage: builder.feed()\n"
+  { "feed", map_feed_method, METH_VARARGS, "Usage: builder.feed()\n"
           "Invoke \"Feed\" function\n"
           "Returns None\n" },
-  { "get", get_method, METH_VARARGS, "Usage: builder.get()\n"
+  { "get", map_get_method, METH_VARARGS, "Usage: builder.get()\n"
           "Returns result by mapping name\n" },
-  { "end", end_method, METH_VARARGS, "Usage: builder.end()\n"
+  { "end", map_end_method, METH_VARARGS, "Usage: builder.end()\n"
           "Returns Dict: results for all mappings\n" },
   { NULL, NULL, 0, NULL } /* Sentinel */
 };
 
 ////----------------------------------------------------------------------------
-static PyTypeObject Xml2PythonBuilderType =
+static PyTypeObject MapXml2PythonBuilderType =
 {
   PyVarObject_HEAD_INIT(NULL, 0)
   "nkit4py.Xml2VarBuilder", /*tp_name*/
-  sizeof(Xml2PythonBuilderData), /*tp_basicsize*/
+  sizeof(MapXml2PythonBuilderData), /*tp_basicsize*/
   0, /*tp_itemsize*/
-  DeletePythonXml2VarBuilder, /*tp_dealloc*/
+  DeleteMapXml2VarBuilder, /*tp_dealloc*/
   0, /*tp_print*/
   0, /*tp_getattr*/
   0, /*tp_setattr*/
@@ -768,7 +790,7 @@ static PyTypeObject Xml2PythonBuilderType =
   0,//tp_weaklistoffset,
   0,//tp_iter,
   0,//tp_iternext,
-  xml2var_methods,//tp_methods,
+  map_xml2var_methods,//tp_methods,
   0,//tp_members,
   0,//tp_getset,
   0,//tp_base,
@@ -778,7 +800,188 @@ static PyTypeObject Xml2PythonBuilderType =
   0,//tp_dictoffset,
   0,//tp_init,
   0,//tp_alloc,
-  CreatePythonXml2VarBuilder,//tp_new,
+  CreateMapXml2VarBuilder,//tp_new,
+};
+
+////----------------------------------------------------------------------------
+static PyObject* CreateAnyXml2VarBuilder(
+    PyTypeObject * type, PyObject * args, PyObject *)
+{
+  PyObject * options_dict = NULL;
+  int result = PyArg_ParseTuple(args, "|O", &options_dict);
+  if(!result)
+  {
+    PyErr_SetString(Nkit4PyError,
+        "Expected one or two arguments:"
+        " 1) mappings or 2) options and mappings");
+    return NULL;
+  }
+
+  std::string options, error;
+  if (!options_dict)
+    options = "{}";
+  else if (!parse_dict(options_dict, &options, &error))
+  {
+    PyErr_SetString( Nkit4PyError,
+        ("Options parameter must be JSON-string or dictionary: " +
+        error).c_str());
+    return NULL;
+  }
+
+  if (options.empty())
+  {
+    PyErr_SetString(
+        Nkit4PyError,
+        "Options parameter must be dict or JSON object" );
+    return NULL;
+  }
+
+  AnyXml2PythonBuilderData * self =
+      (AnyXml2PythonBuilderData *)type->tp_alloc( type, 0 );
+  if (!self)
+  {
+    PyErr_SetString(Nkit4PyError, "Low memory");
+    return NULL;
+  }
+
+  nkit::AnyXml2PythonBuilder::Ptr builder =
+      nkit::AnyXml2PythonBuilder::Create(options, &error);
+  if(!builder)
+  {
+    PyErr_SetString( Nkit4PyError, error.c_str() );
+    return NULL;
+  }
+  self->holder_ =
+      new SharedPtrHolder< nkit::AnyXml2PythonBuilder >(builder);
+
+  return (PyObject *)self;
+}
+
+////----------------------------------------------------------------------------
+static void DeleteAnyXml2VarBuilder(PyObject * self)
+{
+  SharedPtrHolder< nkit::AnyXml2PythonBuilder > * ptr =
+        ((AnyXml2PythonBuilderData *)self)->holder_;
+  if (ptr)
+    delete ptr;
+  self->ob_type->tp_free(self);
+}
+
+////----------------------------------------------------------------------------
+static PyObject * any_feed_method( PyObject * self, PyObject * args )
+{
+  const char* request = NULL;
+  Py_ssize_t size = 0;
+  int result = PyArg_ParseTuple( args, "s#", &request, &size );
+  if(!result)
+  {
+    PyErr_SetString( Nkit4PyError, "Expected string arguments" );
+    return NULL;
+  }
+  if( !request || !*request || !size )
+  {
+    PyErr_SetString(
+        Nkit4PyError, "Parameter must not be empty string" );
+    return NULL;
+  }
+
+  nkit::AnyXml2PythonBuilder::Ptr builder =
+      ((AnyXml2PythonBuilderData *)self)->holder_->ptr_;
+
+  std::string error("");
+  if(!builder->Feed( request, size, false, &error ))
+  {
+    PyErr_SetString( Nkit4PyError, error.c_str() );
+    return NULL;
+  }
+
+  Py_RETURN_NONE;
+}
+
+////----------------------------------------------------------------------------
+static PyObject * any_get_method( PyObject * self, PyObject * args )
+{
+  nkit::AnyXml2PythonBuilder::Ptr builder =
+      ((AnyXml2PythonBuilderData *)self)->holder_->ptr_;
+
+  PyObject * item = builder->var();
+  Py_INCREF(item);
+  return item;
+}
+
+////------------------------------------------------------------------------------
+static PyObject * any_end_method( PyObject * self, PyObject * /*args*/ )
+{
+  nkit::AnyXml2PythonBuilder::Ptr builder =
+          ((AnyXml2PythonBuilderData *)self)->holder_->ptr_;
+
+  std::string empty("");
+  std::string error("");
+  if(!builder->Feed( empty.c_str(), empty.size(), true, &error ))
+  {
+    PyErr_SetString( Nkit4PyError, error.c_str() );
+    return NULL;
+  }
+
+  PyObject * item = builder->var();
+  Py_INCREF(item);
+  return item;
+}
+
+////----------------------------------------------------------------------------
+static PyMethodDef any_xml2var_methods[] =
+{
+  { "feed", any_feed_method, METH_VARARGS, "Usage: builder.feed()\n"
+          "Invoke \"Feed\" function\n"
+          "Returns None\n" },
+  { "get", any_get_method, METH_VARARGS, "Usage: builder.get()\n"
+          "Returns result by mapping name\n" },
+  { "end", any_end_method, METH_VARARGS, "Usage: builder.end()\n"
+          "Returns Dict: results for all mappings\n" },
+  { NULL, NULL, 0, NULL } /* Sentinel */
+};
+
+////----------------------------------------------------------------------------
+static PyTypeObject AnyXml2PythonBuilderType =
+{
+  PyVarObject_HEAD_INIT(NULL, 0)
+  "nkit4py.AnyXml2VarBuilder", /*tp_name*/
+  sizeof(AnyXml2PythonBuilderData), /*tp_basicsize*/
+  0, /*tp_itemsize*/
+  DeleteAnyXml2VarBuilder, /*tp_dealloc*/
+  0, /*tp_print*/
+  0, /*tp_getattr*/
+  0, /*tp_setattr*/
+  0, /*tp_compare*/
+  0, /*tp_repr*/
+  0, /*tp_as_number*/
+  0, /*tp_as_sequence*/
+  0, /*tp_as_mapping*/
+  0, /*tp_hash */
+  0, /*tp_call*/
+  0, /*tp_str*/
+  0, /*tp_getattro*/
+  0, /*tp_setattro*/
+  0, /*tp_as_buffer*/
+  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
+  "XML to object or list converter and filter", /* tp_doc */
+  0,//tp_traverse
+  0,//tp_clear,
+  0,//tp_richcompare,
+  0,//tp_weaklistoffset,
+  0,//tp_iter,
+  0,//tp_iternext,
+  any_xml2var_methods,//tp_methods,
+  0,//tp_members,
+  0,//tp_getset,
+  0,//tp_base,
+  0,//tp_dict,
+  0,//tp_descr_get,
+  0,//tp_descr_set,
+  0,//tp_dictoffset,
+  0,//tp_init,
+  0,//tp_alloc,
+  CreateAnyXml2VarBuilder,//tp_new,
 };
 
 ////----------------------------------------------------------------------------
@@ -941,7 +1144,10 @@ namespace nkit
 ////----------------------------------------------------------------------------
 PyMODINIT_FUNC initnkit4py(void)
 {
-  if( -1 == PyType_Ready(&Xml2PythonBuilderType) )
+  if( -1 == PyType_Ready(&MapXml2PythonBuilderType) )
+    return;
+
+  if( -1 == PyType_Ready(&AnyXml2PythonBuilderType) )
     return;
 
   PyObject * module = Py_InitModule("nkit4py", ModuleMethods);
@@ -952,9 +1158,13 @@ PyMODINIT_FUNC initnkit4py(void)
   Py_INCREF(Nkit4PyError);
   PyModule_AddObject( module, "Error", Nkit4PyError );
 
-  Py_INCREF(&Xml2PythonBuilderType);
+  Py_INCREF(&MapXml2PythonBuilderType);
   PyModule_AddObject( module,
-          "Xml2VarBuilder", (PyObject *)&Xml2PythonBuilderType );
+          "Xml2VarBuilder", (PyObject *)&MapXml2PythonBuilderType );
+
+  Py_INCREF(&AnyXml2PythonBuilderType);
+  PyModule_AddObject( module,
+          "AnyXml2VarBuilder", (PyObject *)&AnyXml2PythonBuilderType );
 
   nkit::traceback_module_ = PyImport_ImportModule("traceback");
   assert(nkit::traceback_module_);

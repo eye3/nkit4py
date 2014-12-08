@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from nkit4py import Xml2VarBuilder, DatetimeJSONEncoder, var2xml
+from nkit4py import Xml2VarBuilder, AnyXml2VarBuilder, DatetimeJSONEncoder, var2xml
 import json
 from datetime import *
 
@@ -370,7 +370,14 @@ if persons_etalon != persons:
     print "Error #3.1"
     sys.exit(1)
 
-print persons
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+options = {"trim": True}
+builder = AnyXml2VarBuilder(options)
+builder.feed(xml_string)
+result = builder.end()
+
+pring_json(result)
 
 # ------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------
