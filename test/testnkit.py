@@ -21,6 +21,76 @@ def print_json(v):
 
 
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+xml_string = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<persons type="sample">
+    <person>
+        <name>Jack</name>
+        <phone>+122233344550</phone>
+        <phone>+122233344551</phone>
+    </person>
+    <person>
+        <name>Boris</name>
+        <phone>+122233344553</phone>
+        <phone>+122233344554</phone>
+    </person>
+    any text
+</persons>"""
+
+options = {"trim": True}
+builder = AnyXml2VarBuilder(options)
+builder.feed(xml_string)
+result1 = builder.end()
+
+print_json(result1)
+
+options = {
+    "rootname": "persons",
+    "encoding": "UTF-8",
+    "xmldec": {
+        "version": "1.0",
+        "standalone": True,
+    },
+    "priority": ["title",
+                 "link",
+                 "description",
+                 "pubDate",
+                 "language",
+                 "name",
+                 "phone"
+    ],
+    "pretty": {
+        "indent": "    ",
+        "newline": "\n",
+    },
+    "attrkey": "$",
+    "textkey": "_",
+}
+
+tmp = var2xml(result1, options)
+
+if xml_string != tmp:
+    print xml_string
+    print tmp
+    print "Error #4.1"
+    sys.exit(1)
+
+
+options = {
+    "trim": True
+}
+builder = AnyXml2VarBuilder(options)
+builder.feed(tmp)
+result2 = builder.end()
+
+if result1 != result2:
+    print_json(result1)
+    print_json(result2)
+    print "Error #4.2"
+    sys.exit(1)
+sys.exit(0)
+
+# ------------------------------------------------------------------------------
 def make_pairs(context):
     MAPPING_SUFFIX = "_mapping"
     ETALON_SUFFIX = "_etalon"
@@ -368,43 +438,6 @@ if persons_etalon != persons:
     print_json(persons)
     print_json(persons_etalon)
     print "Error #3.1"
-    sys.exit(1)
-
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-
-options = {"trim": True}
-builder = AnyXml2VarBuilder(options)
-builder.feed(xml_string)
-result1 = builder.end()
-
-options = {
-    "rootname": "any_name",
-    "itemname": "item",
-    "encoding": "UTF-8",
-    "xmldec": {
-        "version": "1.0",
-        "standalone": True,
-    },
-    "pretty": {
-        "indent": "\t",
-        "newline": "\n",
-    },
-    "attrkey": "$",
-    "textkey": "_",
-}
-
-tmp = var2xml(result1, options)
-
-options = {"trim": True}
-builder = AnyXml2VarBuilder(options)
-builder.feed(tmp)
-result2 = builder.end()
-
-if result1 != result2:
-    print_json(result1)
-    print_json(result2)
-    print "Error #4.1"
     sys.exit(1)
 
 # ------------------------------------------------------------------------------

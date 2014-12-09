@@ -37,8 +37,10 @@ With nkit4py module you can convert XML string to Python data and vise versa.
 
 **With XML-to-Python-data possibilities you can:**
  
-- Create Python data structures, which are different from the structure 
-  of XML source.
+- Simply convert XML to Python data with the same structure.
+  
+- Convert XML to Python data with the structure, which is different from the structure 
+  of XML source (using mapping).
   
 - Create multiple Python structures from one XML source.
 
@@ -78,6 +80,7 @@ Module supports not only native Expat XML encodings, but also many others
 - Define precision for float numbers
 - Define format for Date objects
 - Define representation for *True* and *False* values
+- Explicitly define order in which DICT keys will be printed to XML text
 
 
 # Installation
@@ -124,13 +127,111 @@ For MSVS 2013:
 
 # XML to Python data conversion
 
-## Getting started
+## Quick start without mappings
+
+Suppose, we have this xml string:
+
+```xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<persons type="sample">
+    <person>
+        <name>Jack</name>
+        <phone>+122233344550</phone>
+        <phone>+122233344551</phone>
+    </person>
+    <person>
+        <name>Boris</name>
+        <phone>+122233344553</phone>
+        <phone>+122233344554</phone>
+    </person>
+    any text
+</persons>
+```
+
+If we call this script:
+
+```python
+import nkit4py
+
+options = {
+    "trim": True,
+    "attrkey": "$",
+    "textkey": "_"
+}
+
+builder = nkit4py.AnyXml2VarBuilder(options)
+builder.feed(xml_string)
+result = builder.end()
+print result
+```
+
+we will receive the following structure:
+
+```json
+{
+  "person": [
+    {
+      "phone": [
+        "+122233344550", 
+        "+122233344551"
+      ], 
+      "name": [
+        "Jack"
+      ]
+    }, 
+    {
+      "phone": [
+        "+122233344553", 
+        "+122233344554"
+      ], 
+      "name": [
+        "Boris"
+      ]
+    }
+  ], 
+  "$": {
+    "type": "sample"
+  }, 
+  "_": "any text"
+}
+```
+
+We can get same XML string back with the following script:
+
+```python
+import nkit4py
+
+options = {
+    "rootname": "persons",
+    "encoding": "UTF-8",
+    "xmldec": {
+        "version": "1.0",
+        "standalone": True,
+    },
+    "priority": ["name",
+                 "phone"
+    ],
+    "pretty": {
+        "indent": "    ",
+        "newline": "\n",
+    },
+    "attrkey": "$",
+    "textkey": "_",
+}
+
+xml = nkit4py.var2xml(result, options)
+print xml
+```
+
+NOTE: 'priority' option is important if you want print XML elements in fixed order
+
+## Getting started with mappings
 
 Suppose, we have this xml string:
 
 ```xml
 <?xml version="1.0"?>
-<any_name>
+<any_name type="sample">
     <person>
         <phone>+122233344550</phone>
         <name>Jack</name>
@@ -805,8 +906,8 @@ Sub-options:
     - *indent*: any string for indentation;
     - *newline*: any string for line ending (default '\n');
     
-- **attrkey**: any string for Object key name, that holds attributes for element. Default '$';
-- **textkey**: any string for Object key name, that holds text for element. Default '_';
+- **attrkey**: any string for DICT key name, that holds attributes for element. Default '$';
+- **textkey**: any string for DICT key name, that holds text for element. Default '_';
 - **cdata**: list of key names whose values mast be print to XML string as CDATA Default - empty list;
 - **float_precision**: for float numbers - number of symbols after '.' to be printed Default - 2;
 - **date_time_format**: format string of Date objects
@@ -814,6 +915,8 @@ See [man strftime](http://www.cplusplus.com/reference/ctime/strftime/?kw=strftim
 Default "%Y-%m-%d %H:%M:%S";
 - **bool_true**: representation for 'true' boolean value. Default '1';
 - **bool_false**: representation for 'false' boolean value. Default '0';
+- **priority**: list of element names. All DICT keys are printed to XML in order they
+enumerated in this list. Other DICT keys are printed in unexpected order.
 
 If NO *rootname* has been provided then *xmldec* will no effect.
 
@@ -822,6 +925,10 @@ If NO *rootname* has been provided and **data** is Object (not Array) then *attr
 If **data** is Array then *itemname* will be used as element name for its items.
 
 # Change log
+
+- 2.3:
+    - New 'priority' option for nkit4py.var2xml()
+    - New class AnyXml2VarBuilder for converting XML without mapping
 
 - 2.2:
     - Options changes for nkit4py.var2xml(): standalone 'encoding' option.
