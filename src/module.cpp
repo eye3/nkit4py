@@ -929,15 +929,28 @@ static PyObject * any_end_method( PyObject * self, PyObject * /*args*/ )
 }
 
 ////----------------------------------------------------------------------------
+static PyObject * any_root_name_method( PyObject * self, PyObject * args )
+{
+  nkit::AnyXml2PythonBuilder::Ptr builder =
+      ((AnyXml2PythonBuilderData *)self)->holder_->ptr_;
+
+  const std::string & root_name = builder->root_name();
+  return PyString_FromString(root_name.c_str());
+}
+
+////----------------------------------------------------------------------------
 static PyMethodDef any_xml2var_methods[] =
 {
   { "feed", any_feed_method, METH_VARARGS, "Usage: builder.feed()\n"
           "Invoke \"Feed\" function\n"
           "Returns None\n" },
   { "get", any_get_method, METH_VARARGS, "Usage: builder.get()\n"
-          "Returns result by mapping name\n" },
+          "Returns result\n" },
   { "end", any_end_method, METH_VARARGS, "Usage: builder.end()\n"
-          "Returns Dict: results for all mappings\n" },
+          "Returns result\n" },
+  { "root_name", any_root_name_method, METH_VARARGS,
+      "Usage: builder.root_name()\n"
+      "Returns root element name\n" },
   { NULL, NULL, 0, NULL } /* Sentinel */
 };
 

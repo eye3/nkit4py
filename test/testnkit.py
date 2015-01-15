@@ -41,7 +41,9 @@ options = {"trim": True}
 builder = AnyXml2VarBuilder(options)
 builder.feed(xml_string)
 result1 = builder.end()
+root_name1 = builder.root_name()
 
+print root_name1
 print_json(result1)
 
 options = {
@@ -82,11 +84,19 @@ options = {
 builder = AnyXml2VarBuilder(options)
 builder.feed(tmp)
 result2 = builder.end()
+root_name2 = builder.root_name()
+print root_name2
 
 if result1 != result2:
     print_json(result1)
     print_json(result2)
     print "Error #4.2"
+    sys.exit(1)
+
+if root_name1 != root_name2:
+    print_json(root_name1)
+    print_json(root_name2)
+    print "Error #4.3"
     sys.exit(1)
 sys.exit(0)
 
