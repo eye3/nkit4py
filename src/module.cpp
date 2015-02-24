@@ -1038,7 +1038,11 @@ static PyObject * var2xml_method( PyObject * self, PyObject * args )
     return NULL;
   }
 
-  return PyString_FromStringAndSize(out.data(), out.size());
+  const nkit::Dynamic * unicode = NULL;
+  if (op.Get("unicode", &unicode) && unicode->GetBoolean())
+    return PyUnicode_FromStringAndSize(out.data(), out.size());
+  else
+    return PyString_FromStringAndSize(out.data(), out.size());
 }
 
 ////----------------------------------------------------------------------------

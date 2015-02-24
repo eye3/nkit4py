@@ -475,7 +475,7 @@ options = {
     "encoding": "UTF-8",
     "xmldec": {
         "version": "1.0",
-        "standalone": True,
+        "standalone": True
     },
     "pretty": {
         "indent": "  ",
