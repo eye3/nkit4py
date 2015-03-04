@@ -61,17 +61,17 @@ namespace nkit
   bool py_to_string(PyObject * unicode, std::string * out,
       std::string * error)
   {
-    if (PyUnicode_CheckExact(unicode))
+    if (PyUnicode_Check(unicode))
     {
       PyObject * tmp = PyUnicode_AsUTF8String(unicode);
       out->assign(PyString_AsString(tmp));
       Py_DECREF(tmp);
     }
-    else if (PyString_CheckExact(unicode))
+    else if (PyString_Check(unicode))
     {
       out->assign(PyString_AsString(unicode));
     }
-    else if (PyFloat_CheckExact(unicode))
+    else if (PyFloat_Check(unicode))
       out->assign(string_cast(PyFloat_AsDouble(unicode)));
     else if (PyNumber_Check(unicode))
     {
@@ -254,12 +254,12 @@ namespace nkit
 
     void ListCheck()
     {
-      assert(PyList_CheckExact(object_));
+      assert(PyList_Check(object_));
     }
 
     void DictCheck()
     {
-      assert(PyDict_CheckExact(object_));
+      assert(PyDict_Check(object_));
     }
 
     void AppendToList( type const & var )
@@ -272,7 +272,7 @@ namespace nkit
     void AppendToDictKeyList( std::string const & key, type const & var )
     {
       type value = PyDict_GetItemString(object_, key.c_str());
-      if (value && PyList_CheckExact(value))
+      if (value && PyList_Check(value))
         PyList_Append(value, var);
       else
       {
@@ -316,6 +316,7 @@ namespace nkit
     {
       DictConstIterator()
         : data_(NULL)
+        , iter_(NULL)
         , pos_(-1)
         , key_(NULL)
         , value_(NULL)
@@ -323,12 +324,47 @@ namespace nkit
 
       DictConstIterator(PyObject * data)
         : data_(data)
-        , pos_(0)
+        , iter_(PyObject_GetIter(data))
+        , pos_(-1)
         , key_(NULL)
         , value_(NULL)
       {
-        if (!PyDict_Next(data_, &pos_, &key_, &value_))
+        Fetch();
+      }
+
+      void Fetch()
+      {
+        ++pos_;
+
+        Py_XDECREF(key_);
+        key_ = NULL;
+
+        if (!iter_)
+        {
           pos_ = -1;
+          key_ = NULL;
+          value_ = NULL;
+          return;
+        }
+
+        key_ = PyIter_Next(iter_);
+        if (!key_)
+        {
+          pos_ = -1;
+          key_ = NULL;
+          value_ = NULL;
+          return;
+        }
+
+        value_ = PyDict_GetItem(data_, key_);
+      }
+
+      ~DictConstIterator()
+      {
+        Py_XDECREF(key_);
+        key_ = NULL;
+        Py_XDECREF(iter_);
+        iter_ = NULL;
       }
 
       bool operator != (const DictConstIterator & another)
@@ -338,8 +374,7 @@ namespace nkit
 
       DictConstIterator & operator++()
       {
-        if (pos_ != -1 && !PyDict_Next(data_, &pos_, &key_, &value_))
-          pos_ = -1;
+        Fetch();
         return *this;
       }
 
@@ -362,6 +397,7 @@ namespace nkit
       }
 
       PyObject * data_;
+      PyObject * iter_;
       Py_ssize_t pos_;
       PyObject * key_;
       PyObject * value_;
@@ -466,32 +502,32 @@ namespace nkit
 
     static bool IsList(const PyObject * data)
     {
-      bool ret = PyList_CheckExact(const_cast<PyObject *>(data)) ||
-              PyTuple_CheckExact(const_cast<PyObject *>(data)) ||
+      bool ret = PyList_Check(const_cast<PyObject *>(data)) ||
+              PyTuple_Check(const_cast<PyObject *>(data)) ||
               PySet_Check(const_cast<PyObject *>(data)) ;
       return ret;
     }
 
     static bool IsDict(const PyObject * data)
     {
-      bool ret = PyDict_CheckExact(const_cast<PyObject *>(data));
+      bool ret = PyDict_Check(const_cast<PyObject *>(data));
       return ret;
     }
 
     static bool IsString(const PyObject * data)
     {
-      return PyUnicode_CheckExact(data) || PyString_CheckExact(data);
+      return PyUnicode_Check(data) || PyString_Check(data);
     }
 
     static bool IsFloat(const PyObject * data)
     {
-      bool ret = PyFloat_CheckExact(const_cast<PyObject *>(data));
+      bool ret = PyFloat_Check(const_cast<PyObject *>(data));
       return ret;
     }
 
     static bool IsDateTime(const PyObject * data)
     {
-      bool ret = PyDateTime_CheckExact(const_cast<PyObject *>(data));
+      bool ret = PyDateTime_Check(const_cast<PyObject *>(data));
       return ret;
     }
 
@@ -551,7 +587,7 @@ static PyObject * Nkit4PyError;
 ////----------------------------------------------------------------------------
 bool parse_dict(PyObject * dict, std::string * out, std::string * error)
 {
-  if (PyDict_CheckExact(dict))
+  if (PyDict_Check(dict))
     return nkit::pyobj_to_json(dict, out, error);
   else
     return nkit::py_to_string(dict, out, error);
