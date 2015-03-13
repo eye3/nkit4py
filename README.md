@@ -156,7 +156,8 @@ import nkit4py
 options = {
     "trim": True,
     "attrkey": "$",
-    "textkey": "_"
+    "textkey": "_",
+    "ordered_dict": False
 }
 
 builder = nkit4py.AnyXml2VarBuilder(options)
@@ -195,6 +196,9 @@ we will receive the following structure:
   "_": "any text"
 }
 ```
+
+With option 'ordered_dict' == True we will get collections.OrderedDict objects
+instead of usual python Dict.
 
 We can get same XML string back with the following script:
 

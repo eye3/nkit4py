@@ -5,7 +5,8 @@ import tornado
 from tornado.ioloop import IOLoop
 from tornado.web import RequestHandler, Application
 from tornado.httpserver import HTTPServer
-from nkit4py import Xml2VarBuilder, DatetimeJSONEncoder, var2xml
+from nkit4py import Xml2VarBuilder, AnyXml2VarBuilder,\
+    DatetimeJSONEncoder, var2xml
 import json
 import os
 import BaseHTTPServer
@@ -40,10 +41,32 @@ def xml2var():
     )
 
 
+def anyxml2var():
+    options = {
+        "trim": True,
+        "ordered_dict": True
+    }
+
+    gen = AnyXml2VarBuilder(options)
+    gen.feed(xml)
+    target = gen.end()
+    return json.dumps(target
+                      , indent=2
+                      , ensure_ascii=False
+                      , cls= DatetimeJSONEncoder
+    )
+
+
 class Xml2VarHandler(RequestHandler):
     def get(self):
         self.set_header("Content-Type", "application/json; charset=utf-8")
         self.write(xml2var())
+
+
+class AnyXml2VarHandler(RequestHandler):
+    def get(self):
+        self.set_header("Content-Type", "application/json; charset=utf-8")
+        self.write(anyxml2var())
 
 
 class Var2XmlHandler(RequestHandler):
@@ -122,6 +145,7 @@ class Handler2(RequestHandler):
 def run_tornado():
     app = Application([
         tornado.web.url(r"/xml2var", Xml2VarHandler),
+        tornado.web.url(r"/anyxml2var", AnyXml2VarHandler),
         tornado.web.url(r"/var2xml", Var2XmlHandler),
         tornado.web.url(r"/1/", Handler1),
         tornado.web.url(r"/2/", Handler2),

@@ -45,6 +45,9 @@ namespace nkit
   static PyObject * main_module_;
   static PyObject * dt_module_;
   static PyObject * dt_;
+  static PyObject * collections_module_;
+  static PyObject * ordered_dict_;
+  static PyObject * ordered_dict_set_item_;
   static PyObject * fromtimestamp_;
   static PyObject * traceback_module_;
   static PyObject * traceback_dict_;
@@ -248,7 +251,10 @@ namespace nkit
     void InitAsDict()
     {
       Py_CLEAR(object_);
-      object_ = PyDict_New();
+      if (options_.ordered_dict_)
+        object_ = PyObject_CallObject(ordered_dict_, NULL);
+      else
+        object_ = PyDict_New();
       assert(object_);
     }
 
@@ -280,14 +286,34 @@ namespace nkit
         Py_INCREF(var);
         PyList_SET_ITEM(list, 0, var);
         SetDictKeyValue(key, list);
+        Py_CLEAR(list);
       }
     }
 
     void SetDictKeyValue( std::string const & key, type const & var )
     {
-      int result = PyDict_SetItemString( object_, key.c_str(), var );
-      assert(-1 != result);
-      NKIT_FORCE_USED(result)
+      if (options_.ordered_dict_)
+      {
+        PyObject * pkey;
+        if (options_.unicode_)
+          pkey = PyUnicode_FromStringAndSize(key.data(), key.size());
+        else
+          pkey = PyString_FromStringAndSize(key.data(), key.size());
+
+        PyObject * result = PyObject_CallFunction(ordered_dict_set_item_,
+            const_cast<char*>("OOO"), object_, pkey, var);
+
+        assert(result);
+        Py_CLEAR(result);
+        Py_CLEAR(pkey);
+//        Py_XDECREF(var);
+      }
+      else
+      {
+        int result = PyDict_SetItemString( object_, key.c_str(), var );
+        assert(-1 != result);
+        NKIT_FORCE_USED(result)
+      }
     }
 
     type const & get() const
@@ -1256,6 +1282,20 @@ PyMODINIT_FUNC initnkit4py(void)
   nkit::dt_module_ = PyImport_ImportModule("datetime");
   assert(nkit::dt_module_);
   Py_INCREF(nkit::dt_module_);
+
+  nkit::collections_module_ = PyImport_ImportModule("collections");
+  assert(nkit::collections_module_);
+  Py_INCREF(nkit::collections_module_);
+
+  nkit::ordered_dict_ =
+      PyObject_GetAttrString(nkit::collections_module_, "OrderedDict");
+  assert(nkit::ordered_dict_);
+  Py_INCREF(nkit::ordered_dict_);
+
+  nkit::ordered_dict_set_item_ =
+        PyObject_GetAttrString(nkit::ordered_dict_, "__setitem__");
+  assert(nkit::ordered_dict_set_item_);
+  Py_INCREF(nkit::ordered_dict_set_item_);
 
   PyDateTime_IMPORT;
 

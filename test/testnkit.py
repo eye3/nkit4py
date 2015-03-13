@@ -37,7 +37,10 @@ xml_string = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     any text
 </persons>"""
 
-options = {"trim": True}
+options = {
+    "trim": True,
+    "ordered_dict": True
+}
 builder = AnyXml2VarBuilder(options)
 builder.feed(xml_string)
 result1 = builder.end()
