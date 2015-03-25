@@ -24,7 +24,7 @@ def print_json(v):
 # ------------------------------------------------------------------------------
 xml_string = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <persons type="sample">
-    <person>
+    <person a="a" q="q" z="z">
         <name>Jack</name>
         <phone>+122233344550</phone>
         <phone>+122233344551</phone>
@@ -39,7 +39,7 @@ xml_string = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 options = {
     "trim": True,
-    "ordered_dict": True
+    "ordered_dict": False
 }
 builder = AnyXml2VarBuilder(options)
 builder.feed(xml_string)
@@ -47,6 +47,7 @@ result1 = builder.end()
 root_name1 = builder.root_name()
 
 print root_name1
+print type(result1["person"][0]["$"])
 print_json(result1)
 
 options = {
@@ -468,7 +469,8 @@ data = {
         "int": 1,
         "float": 1.11234567891234,
         "sub_string": "text < > & \" '",
-        "list": [1 << 2 << 3]
+        "list": [1 << 2 << 3],
+        "_": "Hello(Привет) world(мир)"
     }
 }
 
