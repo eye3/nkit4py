@@ -9,10 +9,11 @@ With XML-to-Python-data possibilities you can:
 ----------------------------------------------
  
 - Simply convert XML to Python data with the same structure.
+  Usual Python Dict objects as well as collections.OrderedDict objects can be created.
 
 - Convert XML to Python data with the structure, which is different from the structure
   of XML source (using mapping).
-  
+
 - Create multiple Python structures from one XML source.
 
 - Explicitly identify those elements and attributes in XML source that you
@@ -29,7 +30,7 @@ With XML-to-Python-data possibilities you can:
 	- trim text data
 	- explicitly define white space characters for trim option
 	- choose unicode or string type for text data
-    - define special key to collect all element attributes
+	- define special key to collect all element attributes
 
 Conversion is carried out using SAX parser Expat, so it's fast and uses less
 memory when parsing huge XML files.

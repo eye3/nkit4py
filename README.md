@@ -38,6 +38,7 @@ With nkit4py module you can convert XML string to Python data and vise versa.
 **With XML-to-Python-data possibilities you can:**
  
 - Simply convert XML to Python data with the same structure.
+  Usual Python Dict objects as well as collections.OrderedDict objects can be created.
   
 - Convert XML to Python data with the structure, which is different from the structure 
   of XML source (using mapping).
