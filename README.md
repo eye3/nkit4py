@@ -1,32 +1,30 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
+- [Introduction](#introduction)
+- [Installation](#installation)
+  - [Requirements](#requirements)
+  - [On Linux and Mac OS](#on-linux-and-mac-os)
+  - [On Windows](#on-windows)
+- [XML to Python data conversion](#xml-to-python-data-conversion)
+  - [Quick start without mappings](#quick-start-without-mappings)
+  - [Getting started with mappings](#getting-started-with-mappings)
+  - [Building simple object from xml string (last 'person' xml element will be used)](#building-simple-object-from-xml-string-last-person-xml-element-will-be-used)
+  - [Building list-of-objects from xml string](#building-list-of-objects-from-xml-string)
+  - [Building list-of-objects-with-lists from xml string](#building-list-of-objects-with-lists-from-xml-string)
+  - [Creating keys in object for non-existent xml elements](#creating-keys-in-object-for-non-existent-xml-elements)
+  - [Building data structures from big XML source, reading it chunk by chunk](#building-data-structures-from-big-xml-source-reading-it-chunk-by-chunk)
+  - [Options](#options)
+    - ['attrkey' option](#attrkey-option)
+  - [Notes](#notes)
+- [Python data to XML conversion](#python-data-to-xml-conversion)
+  - [Quick start](#quick-start)
+  - [Options for var2xml](#options-for-var2xml)
+- [Change log](#change-log)
+- [Author](#author)
 
-<!-- toc -->
-
-* [Introduction](#introduction)
-* [Installation](#installation)
-  * [Requirements](#requirements)
-  * [On Linux and Mac OS](#on-linux-and-mac-os)
-  * [On Windows](#on-windows)
-* [XML to Python data conversion](#xml-to-python-data-conversion)
-  * [Getting started](#getting-started)
-  * [Building simple object from xml string (last 'person' xml element will be used)](#building-simple-object-from-xml-string-last-person-xml-element-will-be-used)
-  * [Building list-of-objects from xml string](#building-list-of-objects-from-xml-string)
-  * [Building list-of-objects-with-lists from xml string](#building-list-of-objects-with-lists-from-xml-string)
-  * [Creating keys in object for non-existent xml elements](#creating-keys-in-object-for-non-existent-xml-elements)
-  * [Building data structures from big XML source, reading it chunk by chunk](#building-data-structures-from-big-xml-source-reading-it-chunk-by-chunk)
-  * [Options](#options)
-    * ['attrkey' option](#attrkey-option)
-  * [Notes](#notes)
-* [Python data to XML conversion](#python-data-to-xml-conversion)
-  * [Quick start](#quick-start)
-  * [Options for xml2var](#options-for-xml2var)
-* [Change log](#change-log)
-* [Author](#author)
-
-<!-- toc stop -->
-
-
-
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 
 # Introduction
