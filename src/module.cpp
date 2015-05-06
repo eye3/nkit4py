@@ -14,14 +14,13 @@
    limitations under the License.
 */
 
-#include "Python.h"
+#include <py3c.h>
 #include "datetime.h"
 #include "nkit/types.h"
 #include "nkit/tools.h"
 #include "nkit/logger_brief.h"
 #include "nkit/xml2var.h"
 #include "nkit/var2xml.h"
-#include <Python.h>
 #include <string>
 
 #if ((PY_MAJOR_VERSION == 2) && (PY_MINOR_VERSION <=4))
@@ -57,25 +56,27 @@ namespace nkit
   static PyObject * json_dumps_;
   static PyObject * string_module_;
   static PyObject * string_dict_;
-  static PyObject * string_join_fields_;
   static PyObject * datetime_json_encoder_;
 
   //----------------------------------------------------------------------------
   bool py_to_string(PyObject * unicode, std::string * out,
       std::string * error)
   {
-    if (PyUnicode_Check(unicode))
+    if (PyStr_Check(unicode))
     {
-      PyObject * tmp = PyUnicode_AsUTF8String(unicode);
-      out->assign(PyString_AsString(tmp));
+      PyObject * tmp = PyStr_AsUTF8String(unicode);
+      const char * str = PyBytes_AS_STRING(tmp);
+      out->assign(str);
       Py_DECREF(tmp);
     }
-    else if (PyString_Check(unicode))
+    else if (PyBytes_Check(unicode))
     {
-      out->assign(PyString_AsString(unicode));
+      out->assign(PyBytes_AsString(unicode));
     }
     else if (PyFloat_Check(unicode))
+    {
       out->assign(string_cast(PyFloat_AsDouble(unicode)));
+    }
     else if (PyNumber_Check(unicode))
     {
       out->assign(string_cast(
@@ -194,7 +195,7 @@ namespace nkit
       if (options_.unicode_)
         object_ = PyUnicode_FromStringAndSize(value.data(), value.size());
       else
-        object_ = PyString_FromStringAndSize(value.data(), value.size());
+        object_ = PyBytes_FromStringAndSize(value.data(), value.size());
       assert(object_);
     }
 
@@ -298,7 +299,7 @@ namespace nkit
         if (options_.unicode_)
           pkey = PyUnicode_FromStringAndSize(key.data(), key.size());
         else
-          pkey = PyString_FromStringAndSize(key.data(), key.size());
+          pkey = PyBytes_FromStringAndSize(key.data(), key.size());
 
         PyObject * result = PyObject_CallFunction(ordered_dict_set_item_,
             const_cast<char*>("OOO"), object_, pkey, var);
@@ -306,7 +307,6 @@ namespace nkit
         assert(result);
         Py_CLEAR(result);
         Py_CLEAR(pkey);
-//        Py_XDECREF(var);
       }
       else
       {
@@ -542,7 +542,7 @@ namespace nkit
 
     static bool IsString(const PyObject * data)
     {
-      return PyUnicode_Check(data) || PyString_Check(data);
+      return PyStr_Check(data) || PyBytes_Check(data);
     }
 
     static bool IsFloat(const PyObject * data)
@@ -614,9 +614,13 @@ static PyObject * Nkit4PyError;
 bool parse_dict(PyObject * dict, std::string * out, std::string * error)
 {
   if (PyDict_Check(dict))
+  {
     return nkit::pyobj_to_json(dict, out, error);
+  }
   else
+  {
     return nkit::py_to_string(dict, out, error);
+  }
 }
 
 ////----------------------------------------------------------------------------
@@ -913,6 +917,7 @@ static PyObject* CreateAnyXml2VarBuilder(
     PyErr_SetString( Nkit4PyError, error.c_str() );
     return NULL;
   }
+
   self->holder_ =
       new SharedPtrHolder< nkit::AnyXml2PythonBuilder >(builder);
 
@@ -997,7 +1002,7 @@ static PyObject * any_root_name_method( PyObject * self, PyObject * args )
       ((AnyXml2PythonBuilderData *)self)->holder_->ptr_;
 
   const std::string & root_name = builder->root_name();
-  return PyString_FromString(root_name.c_str());
+  return PyStr_FromString(root_name.c_str());
 }
 
 ////----------------------------------------------------------------------------
@@ -1104,7 +1109,7 @@ static PyObject * var2xml_method( PyObject * self, PyObject * args )
   if (op.Get("unicode", &unicode) && unicode->GetBoolean())
     return PyUnicode_FromStringAndSize(out.data(), out.size());
   else
-    return PyString_FromStringAndSize(out.data(), out.size());
+    return PyBytes_FromStringAndSize(out.data(), out.size());
 }
 
 ////----------------------------------------------------------------------------
@@ -1117,74 +1122,18 @@ static PyMethodDef ModuleMethods[] =
   { NULL, NULL, 0, NULL } /* Sentinel */
 };
 
-#ifndef PyMODINIT_FUNC  /* declarations for DLL import/export */
-#define PyMODINIT_FUNC void
-#endif
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,  /* m_base */
+    "nkit4py",                 /* m_name */
+    NULL,                   /* m_doc */
+    -1,                     /* m_size */
+    ModuleMethods            /* m_methods */
+};
+
 
 ////----------------------------------------------------------------------------
 namespace nkit
 {
-  std::string get_python_error()
-  {
-    std::string error;
-
-    PyObject *exc_obj = NULL;
-    PyObject *exc_str = NULL;
-    PyObject *exc_traceback = NULL;
-    PyObject *lines = NULL;
-    PyObject *exception_string = NULL;
-
-    if (PyErr_Occurred() == NULL)
-    return std::string("");
-
-    PyErr_Fetch(&exc_obj, &exc_str, &exc_traceback);
-
-    if (exc_obj == NULL)
-    {
-      error.append("Fatal error in 'GetPythonError': ExcObj == NULL");
-    }
-    else if (exc_str == NULL)
-    {
-      error.append("Fatal error in 'GetPythonError': ExcStr == NULL");
-    }
-    else
-    {
-      if (exc_traceback == NULL)
-        lines = PyObject_CallFunction(
-          traceback_format_exception_only_,
-            const_cast<char*>("OO"), exc_obj, exc_str);
-      else
-        lines = PyObject_CallFunction(
-          traceback_format_exception_,
-          const_cast<char*>("OOO"), exc_obj, exc_str, exc_traceback);
-
-      if (lines == NULL)
-      {
-        error.append("traceback.formatexception error");
-      }
-      else
-      {
-        exception_string = PyObject_CallFunction(
-            string_join_fields_, const_cast<char*>("Os"), lines, "");
-
-        if (exception_string == NULL)
-          error.append("string.joinfields error");
-        else
-          error.append(PyString_AsString(exception_string));
-      }
-    }
-
-    Py_XDECREF(lines);
-    Py_XDECREF(exception_string);
-    Py_XDECREF(exc_obj);
-    Py_XDECREF(exc_str);
-    Py_XDECREF(exc_traceback);
-
-    PyErr_Clear();
-
-    return std::string(error);
-  }
-
   std::string PythonBuilderPolicy::ToString() const
   {
     std::string ret, error;
@@ -1220,18 +1169,23 @@ namespace nkit
 
 } // namespace nkit
 
+
+#ifndef PyMODINIT_FUNC  /* declarations for DLL import/export */
+#define PyMODINIT_FUNC void
+#endif
+
 ////----------------------------------------------------------------------------
-PyMODINIT_FUNC initnkit4py(void)
+MODULE_INIT_FUNC(nkit4py)
 {
   if( -1 == PyType_Ready(&MapXml2PythonBuilderType) )
-    return;
+    return NULL;
 
   if( -1 == PyType_Ready(&AnyXml2PythonBuilderType) )
-    return;
+    return NULL;
 
-  PyObject * module = Py_InitModule("nkit4py", ModuleMethods);
+  PyObject * module = PyModule_Create(&moduledef);
   if( NULL == module )
-    return;
+    return NULL;
 
   Nkit4PyError = PyErr_NewException( (char *)"nkit4py.Error", NULL, NULL );
   Py_INCREF(Nkit4PyError);
@@ -1266,10 +1220,6 @@ PyMODINIT_FUNC initnkit4py(void)
 
   nkit::string_dict_ = PyModule_GetDict(nkit::string_module_);
   Py_INCREF(nkit::string_dict_);
-
-  nkit::string_join_fields_ =
-      PyDict_GetItemString(nkit::string_dict_, "joinfields");
-  Py_INCREF(nkit::string_join_fields_);
 
   nkit::json_module_ = PyImport_ImportModule("json");
   assert(nkit::json_module_);
@@ -1321,7 +1271,7 @@ PyMODINIT_FUNC initnkit4py(void)
   {
     Py_DECREF(locals);
     CERR("Could not run code statements");
-    return;
+    return NULL;
   }
 
   nkit::datetime_json_encoder_ =
@@ -1336,4 +1286,6 @@ PyMODINIT_FUNC initnkit4py(void)
   PyDict_DelItemString(globals, "nkit_tmp_json");
   Py_DECREF(locals);
   Py_DECREF(run);
+
+  return module;
 }

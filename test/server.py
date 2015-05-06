@@ -9,7 +9,13 @@ from nkit4py import Xml2VarBuilder, AnyXml2VarBuilder,\
     DatetimeJSONEncoder, var2xml
 import json
 import os
-import BaseHTTPServer
+import sys
+if sys.version_info[0] == 2:
+    import BaseHTTPServer
+    SERVER = BaseHTTPServer
+else:
+    import http.server
+    SERVER = http.server
 from datetime import *
 
 path = os.path.dirname(os.path.realpath(__file__))
@@ -70,8 +76,8 @@ class AnyXml2VarHandler(RequestHandler):
 
 
 class Var2XmlHandler(RequestHandler):
-    # ENCODING = "UTF-8"
-    ENCODING = "windows-1251"
+    ENCODING = "UTF-8"
+    # ENCODING = "windows-1251"
     DATA = {
         "$": {"p1": "в1&v2\"'", "p2": "v2"},
         "_": "Hello(Привет) world(мир)",
@@ -110,12 +116,15 @@ class Var2XmlHandler(RequestHandler):
         "float_precision": 10,
         "date_time_format": "%Y-%m-%d %H:%M:%S",
         "bool_true": "Yes",
-        "bool_false": "No"
+        "bool_false": "No",
+        "unicode": True
     }
 
     def get(self):
         self.set_header("Content-Type", "text/xml; charset=" + Var2XmlHandler.ENCODING)
-        self.write(var2xml(Var2XmlHandler.DATA, Var2XmlHandler.OPTIONS))
+        bytes = var2xml(Var2XmlHandler.DATA, Var2XmlHandler.OPTIONS)
+        print(type(bytes))
+        self.write(bytes)
 
 
 class RedirectHandler(RequestHandler):
@@ -157,7 +166,7 @@ def run_tornado():
     IOLoop.current().start()
 
 
-class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
+class WebServer(SERVER.BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.send_header('content-type', 'application/json; charset=utf-8')
@@ -169,7 +178,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
 def run_simple_server():
-    webserver = BaseHTTPServer.HTTPServer(('0.0.0.0', 8888), WebServer)
+    webserver = SERVER.HTTPServer(('0.0.0.0', 8888), WebServer)
     webserver.serve_forever()
 
 

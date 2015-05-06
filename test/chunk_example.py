@@ -22,7 +22,7 @@ class XmlDownloader:
         def on_chunk(chunk): # <------this callback will be called many times
             builder.feed(chunk)
             current_data = builder.get("any_mapping_name")
-            print len(current_data)
+#             print(len(current_data))
 
         yield self.http.fetch(HTTPRequest(url,
                         connect_timeout=40,
@@ -45,7 +45,7 @@ class MainHandler(RequestHandler):
     @tornado.gen.coroutine
     def get(self):
         MainHandler.counter += 1
-        print MainHandler.counter
+        print(MainHandler.counter)
         downloader = XmlDownloader()
         result = yield downloader.run(
             MainHandler.URLS[MainHandler.counter % 2],

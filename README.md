@@ -1,6 +1,6 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+**Table of Contents**
 
 - [Introduction](#introduction)
 - [Installation](#installation)
@@ -930,6 +930,9 @@ If NO *rootname* has been provided and **data** is Object (not Array) then *attr
 If **data** is Array then *itemname* will be used as element name for its items.
 
 # Change log
+
+- 2.3.2 (2016-04-02):
+    - Python s3.4 and 3.5 support
 
 - 2.3:
     - New 'priority' option for nkit4py.var2xml()

@@ -16,13 +16,12 @@ def to_json(v):
 
 # ------------------------------------------------------------------------------
 def print_json(v):
-    print "-------------------------------------"
-    print to_json(v)
-
+    print("-------------------------------------")
+    print(to_json(v))
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-xml_string = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+xml_string = u"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <persons type="sample">
     <person a="a" q="q" z="z">
         <name>Jack</name>
@@ -39,15 +38,15 @@ xml_string = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 options = {
     "trim": True,
-    "ordered_dict": False
+    "ordered_dict": True
 }
 builder = AnyXml2VarBuilder(options)
 builder.feed(xml_string)
 result1 = builder.end()
 root_name1 = builder.root_name()
 
-print root_name1
-print type(result1["person"][0]["$"])
+print(root_name1)
+print(type(result1["person"][0]["$"]))
 print_json(result1)
 
 options = {
@@ -71,14 +70,15 @@ options = {
     },
     "attrkey": "$",
     "textkey": "_",
+    "unicode": True
 }
 
 tmp = var2xml(result1, options)
 
 if xml_string != tmp:
-    print xml_string
-    print tmp
-    print "Error #4.1"
+    print(xml_string)
+    print(tmp)
+    print("Error #4.1")
     sys.exit(1)
 
 
@@ -89,18 +89,18 @@ builder = AnyXml2VarBuilder(options)
 builder.feed(tmp)
 result2 = builder.end()
 root_name2 = builder.root_name()
-print root_name2
+print(root_name2)
 
 if result1 != result2:
     print_json(result1)
     print_json(result2)
-    print "Error #4.2"
+    print("Error #4.2")
     sys.exit(1)
 
 if root_name1 != root_name2:
     print_json(root_name1)
     print_json(root_name2)
-    print "Error #4.3"
+    print("Error #4.3")
     sys.exit(1)
 #sys.exit(0)
 
@@ -290,11 +290,11 @@ counter = 0
 for mapping_name, etalon in etalons.items():
     counter += 1
     if res[mapping_name] != etalon:
-        print "ETALON of %s:" % mapping_name
+        print("ETALON of %s:" % mapping_name)
         print_json(etalon)
-        print "RESULT of %s:" % mapping_name
+        print("RESULT of %s:" % mapping_name)
         print_json(res[mapping_name])
-        print "Error #1.%d" % counter
+        print("Error #1.%d" % counter)
         sys.exit(1)
 
 # ------------------------------------------------------------------------------
@@ -342,7 +342,7 @@ etalon = [
 if etalon != result:
     print_json(etalon)
     print_json(result)
-    print "Error #2.1"
+    print("Error #2.1")
     sys.exit(1)
 
 # ------------------------------------------------------------------------------
@@ -356,7 +356,7 @@ multi_mapping = {
     }]
 }
 
-options = {"trim": True, "unicode": False}
+options = {"trim": True, "unicode": True}
 
 builder = Xml2VarBuilder(options, multi_mapping)
 builder.feed(xml_string)
@@ -395,23 +395,23 @@ persons_etalon = [
 if academy_etalon != academy:
     print_json(academy)
     print_json(academy_etalon)
-    print "Error #2.2"
+    print("Error #2.2")
     sys.exit(1)
 
 if persons_etalon != persons:
     print_json(persons)
     print_json(persons_etalon)
-    print "Error #2.3"
+    print("Error #2.3")
     sys.exit(1)
     
 if builder.get("persons") != persons:
     print_json(persons)
     print_json(builder.get("persons"))
-    print "Error #2.4"
+    print("Error #2.4")
     sys.exit(1)
 
 # -------------------------------------------------------------------------------
-options = {"attrkey": "$"}
+options = {"attrkey": "$", "unicode": True}
 
 mapping = ["/person",
     {
@@ -451,7 +451,7 @@ persons_etalon = [
 if persons_etalon != persons:
     print_json(persons)
     print_json(persons_etalon)
-    print "Error #3.1"
+    print("Error #3.1")
     sys.exit(1)
 
 # ------------------------------------------------------------------------------
@@ -490,12 +490,13 @@ options = {
     "textkey": "_",
     "cdata": ["cdata"],
     "float_precision": 10,
-    "date_time_format": "%Y-%m-%d %H:%M:%S"
+    "date_time_format": "%Y-%m-%d %H:%M:%S",
+    "unicode": True
 }
 
-print var2xml(data, options)
+print(var2xml(data, options))
 
-print var2xml([], options)
+print(var2xml([], options))
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
@@ -507,7 +508,7 @@ data["1"] = "1"
 data["4"] = "4"
 data["3"] = "3"
 
-print var2xml(data, options)
+print(var2xml(data, options))
 
-print "ok"
+print("ok")
 sys.exit(0)
