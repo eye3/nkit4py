@@ -1,5 +1,5 @@
 /*
-   Copyright 2010-2014 Boris T. Darchiev (boris.darchiev@gmail.com)
+   Copyright 2010-2015 Boris T. Darchiev (boris.darchiev@gmail.com)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -63,8 +63,10 @@ namespace nkit
   NKIT_DEFINE_CONST_STRING(S_FALSE_CAP_, "False")
   NKIT_DEFINE_CONST_STRING(S_TRUE_, "true")
   NKIT_DEFINE_CONST_STRING(S_TRUE_CAP_, "True")
+  NKIT_DEFINE_CONST_STRING(S_TRUE_CAP_CAP_, "TRUE")
   NKIT_DEFINE_CONST_STRING(S_YES_, "yes")
   NKIT_DEFINE_CONST_STRING(S_YES_CAP_, "Yes")
+  NKIT_DEFINE_CONST_STRING(S_YES_CAP_CAP_, "YES")
   NKIT_DEFINE_CONST_STRING(S_NO_, "no")
   NKIT_DEFINE_CONST_STRING(S_NO_CAP_, "No")
   NKIT_DEFINE_CONST_STRING(S_NULL_, "null")
@@ -74,6 +76,8 @@ namespace nkit
   NKIT_DEFINE_CONST_STRING(S_LT_, "<")
   NKIT_DEFINE_CONST_STRING(S_GT_, ">")
   NKIT_DEFINE_CONST_STRING(S_UTF_8_, "UTF-8")
+  NKIT_DEFINE_CONST_STRING(S_CDATA_BEGIN_, "<![CDATA[")
+  NKIT_DEFINE_CONST_STRING(S_CDATA_END_, "]]>")
 
   time_t timezone_offset()
   {

@@ -119,62 +119,6 @@ namespace nkit_test
     NKIT_TEST_ASSERT(mongo_oid1 == mongo_oid2);
   }
 
-  NKIT_TEST_CASE(DynamicGetter)
-  {
-    std::string str_config("string value"), str_check, str_default;
-    uint64_t ui64_config(33), ui64_check, ui64_default(0);
-    bool b_config(true), b_check, b_default(false);
-
-    Dynamic config = DDICT(
-           "str" << str_config <<
-           "int" << ui64_config <<
-           "bool" << b_config <<
-           "hash" << DDICT(
-               "str" << str_config <<
-               "int" << ui64_config <<
-               "bool" << b_config
-               )
-            );
-
-    DynamicGetter loader(config, "DynamicGetter #1");
-    DynamicGetter sub_loader;
-    loader
-      .Get(".str", &str_check, str_default)
-      .Get(".int", &ui64_check, ui64_default)
-      .Get(".bool", &b_check, b_default)
-      .Get(".hash", &sub_loader)
-    ;
-    NKIT_TEST_ASSERT_WITH_TEXT(loader.ok(), loader.error());
-    NKIT_TEST_ASSERT_WITH_TEXT(str_check == str_config, loader.error());
-    NKIT_TEST_ASSERT_WITH_TEXT(ui64_check == ui64_config, loader.error());
-    NKIT_TEST_ASSERT_WITH_TEXT(b_check == b_config, loader.error());
-
-    str_check = str_default;
-    ui64_check = ui64_default;
-    b_check = b_default;
-    sub_loader
-      .Get(".str", &str_check, str_default)
-      .Get(".int", &ui64_check, ui64_default)
-      .Get(".bool", &b_check, b_default)
-    ;
-    NKIT_TEST_ASSERT_WITH_TEXT(sub_loader.ok(), sub_loader.error());
-    NKIT_TEST_ASSERT_WITH_TEXT(str_check == str_config, sub_loader.error());
-    NKIT_TEST_ASSERT_WITH_TEXT(ui64_check == ui64_config, sub_loader.error());
-    NKIT_TEST_ASSERT_WITH_TEXT(b_check == b_config, sub_loader.error());
-
-    // explicit error
-    loader = DynamicGetter(config, "DynamicGetter #2");
-    loader.Get(".str1", &str_check);
-    NKIT_TEST_ASSERT(!loader.ok());
-    std::cout << loader.error() << std::endl;
-
-    loader = DynamicGetter(config, "DynamicGetter #3");
-    loader.Get(".hash", &sub_loader);
-    sub_loader.Get(".str1", &str_check);
-    NKIT_TEST_ASSERT(!sub_loader.ok());
-    std::cout << sub_loader.error() << std::endl;
-  }
-
   //----------------------------------------------------------------------------
   NKIT_TEST_CASE(DynamicForeachError)
   {
@@ -257,35 +201,35 @@ namespace nkit_test
     size_t index_var(0);
     DynamicPath dp;
 
-    dp = DynamicPath(".[]", &name);
+    dp = DynamicPath('.', ".[]", &name);
     NKIT_TEST_ASSERT_WITH_TEXT(!dp.ok(), dp.Print());
 
-    dp = DynamicPath(".[", &name);
+    dp = DynamicPath('.', ".[", &name);
     NKIT_TEST_ASSERT_WITH_TEXT(!dp.ok(), dp.Print());
 
-    dp = DynamicPath(".]", &name);
+    dp = DynamicPath('.', ".]", &name);
     NKIT_TEST_ASSERT_WITH_TEXT(!dp.ok(), dp.Print());
 
-    dp = DynamicPath("[10].name", &name);
+    dp = DynamicPath('.', "[10].name", &name);
     NKIT_TEST_ASSERT_WITH_TEXT(!dp.ok(), dp.Print());
 
-    dp = DynamicPath(".[10].[30].name", &name);
+    dp = DynamicPath('.', ".[10].[30].name", &name);
     NKIT_TEST_ASSERT_WITH_TEXT(!dp.ok(), dp.Print());
 
-    dp = DynamicPath(".[10]name", &name);
+    dp = DynamicPath('.', ".[10]name", &name);
     NKIT_TEST_ASSERT_WITH_TEXT(!dp.ok(), dp.Print());
 
-    dp = DynamicPath(".", &name);
+    dp = DynamicPath('.', ".", &name);
     NKIT_TEST_ASSERT_WITH_TEXT(dp.ok(), dp.Print());
 
-    dp = DynamicPath(".%", &name);
+    dp = DynamicPath('.', ".%", &name);
     NKIT_TEST_ASSERT_WITH_TEXT(dp.ok(), dp.error());
     name = "name1";
     NKIT_TEST_ASSERT_WITH_TEXT(dp.Print() == (".&" + name), dp.Print());
     name = "name2";
     NKIT_TEST_ASSERT_WITH_TEXT(dp.Print() == (".&" + name), dp.Print());
 
-    dp = DynamicPath(".%[%]", &name, &index_var);
+    dp = DynamicPath('.', ".%[%]", &name, &index_var);
     NKIT_TEST_ASSERT_WITH_TEXT(dp.ok(), dp.error());
     name = "name1";
     index_var = 0;
@@ -294,7 +238,7 @@ namespace nkit_test
     index_var = 4;
     NKIT_TEST_ASSERT_WITH_TEXT(dp.Print() == (".&" + name + "[&4]"), dp.Print());
 
-    dp = DynamicPath(".name[%]", &index_var);
+    dp = DynamicPath('.', ".name[%]", &index_var);
     NKIT_TEST_ASSERT_WITH_TEXT(dp.ok(), dp.error());
     name = "name1";
     index_var = 0;
@@ -303,7 +247,7 @@ namespace nkit_test
     index_var = 4;
     NKIT_TEST_ASSERT_WITH_TEXT(dp.Print() == (".name[&4]"), dp.Print());
 
-    dp = DynamicPath(".aa[%][30].%", &index_var, &name);
+    dp = DynamicPath('.', ".aa[%][30].%", &index_var, &name);
     NKIT_TEST_ASSERT_WITH_TEXT(dp.ok(), dp.error());
     name = "name1";
     index_var = 0;
@@ -312,7 +256,7 @@ namespace nkit_test
     name = "name2";
     NKIT_TEST_ASSERT_WITH_TEXT(dp.Print() == (".aa[&4][30].&"+name), dp.Print());
 
-    dp = DynamicPath(".aa[%].%[30]", &index_var, &name);
+    dp = DynamicPath('.', ".aa[%].%[30]", &index_var, &name);
     NKIT_TEST_ASSERT_WITH_TEXT(dp.ok(), dp.error());
     name = "name1";
     index_var = 0;

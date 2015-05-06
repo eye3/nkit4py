@@ -164,10 +164,11 @@ options = {
 builder = nkit4py.AnyXml2VarBuilder(options)
 builder.feed(xml_string)
 result = builder.end()
+print builder.root_name()
 print result
 ```
 
-we will receive the following structure:
+we will receive the following structure in 'result':
 
 ```json
 {
@@ -892,7 +893,7 @@ Output:
 </ROOT>
 ```
 
-## Options for xml2var
+## Options for var2xml
 
 Following options are supported:
 
@@ -922,6 +923,7 @@ Default "%Y-%m-%d %H:%M:%S";
 - **bool_false**: representation for 'false' boolean value. Default '0';
 - **priority**: list of element names. All DICT keys are printed to XML in order they
 enumerated in this list. Other DICT keys are printed in unexpected order.
+- **unicode**: If True, creates unicode string instead of simple string. Default - False
 
 If NO *rootname* has been provided then *xmldec* will no effect.
 
@@ -933,7 +935,11 @@ If **data** is Array then *itemname* will be used as element name for its items.
 
 - 2.3:
     - New 'priority' option for nkit4py.var2xml()
+	- New 'unicode' option for nkit4py.var2xml()
     - New class AnyXml2VarBuilder for converting XML without mapping
+	- AnyXml2VarBuilder.root_name() method
+	- Support of compatible python structures - any kind of sequencies and dics
+	- Support of ordered dicts
 
 - 2.2:
     - Options changes for nkit4py.var2xml(): standalone 'encoding' option.
