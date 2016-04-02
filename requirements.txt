@@ -1,2 +1,2 @@
-pip install tornado==4.3
+tornado==4.3
 
