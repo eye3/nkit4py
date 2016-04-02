@@ -23,6 +23,7 @@
   - [Options for var2xml](#options-for-var2xml)
 - [Change log](#change-log)
 - [Author](#author)
+- [Travis](#travis)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
