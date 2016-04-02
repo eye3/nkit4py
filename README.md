@@ -964,3 +964,8 @@ Boris T. Darchiev (boris.darchiev@gmail.com)
 On github: https://github.com/eye3
 
 Any feedback or pull request are welcome!
+
+# Travis
+
+[![Build Status](https://travis-ci.org/eye3/nkit4py.svg?branch=master)](https://travis-ci.org/eye3/nkit4py)
+
