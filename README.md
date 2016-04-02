@@ -931,7 +931,7 @@ If **data** is Array then *itemname* will be used as element name for its items.
 
 # Change log
 
-- 2.3.2 (2016-04-02):
+- 2.3.3 (2016-04-02):
     - Python s3.4 and 3.5 support
 
 - 2.3:
@@ -941,6 +941,7 @@ If **data** is Array then *itemname* will be used as element name for its items.
 	- AnyXml2VarBuilder.root_name() method
 	- Support of compatible python structures - any kind of sequencies and dics
 	- Support of ordered dicts
+	- Bug fixes
 
 - 2.2:
     - Options changes for nkit4py.var2xml(): standalone 'encoding' option.
