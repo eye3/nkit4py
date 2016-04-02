@@ -1,2 +1,2 @@
 tornado==4.3
-nkit4py==2.3.3
+https://github.com/eye3/nkit4py
