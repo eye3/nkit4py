@@ -932,8 +932,8 @@ If **data** is Array then *itemname* will be used as element name for its items.
 
 # Change log
 
-- 2.3.3 (2016-04-02):
-    - Python s3.4 and 3.5 support
+- 2.3.3 (2016-04-03):
+    - Python version 2.7 and >= 3.3 support
 
 - 2.3:
     - New 'priority' option for nkit4py.var2xml()
