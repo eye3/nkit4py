@@ -939,7 +939,7 @@ If **data** is Array then *itemname* will be used as element name for its items.
 
 # Change log
 
-- 2.3.5 (2016-04-03):
+- 2.3.6 (2016-04-03):
     - Python version >= 3.3 support
 
 - 2.3:
