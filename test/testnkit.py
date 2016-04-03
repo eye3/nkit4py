@@ -7,6 +7,11 @@ from datetime import *
 
 import os
 import sys
+import unittest
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 
 
 # ------------------------------------------------------------------------------
@@ -537,8 +542,7 @@ def test_var2xml():
   <3>3</3>
 </ROOT>"""
 
-    import collections
-    data = collections.OrderedDict()
+    data = OrderedDict()
     #data = {}
     data["2"] = "2"
     data["1"] = "1"
@@ -554,4 +558,3 @@ def test_var2xml():
 
 if __name__ == '__main__':
     unittest.main()
-#     test_var2xml()

@@ -22,6 +22,7 @@
   - [Quick start](#quick-start)
   - [Options for var2xml](#options-for-var2xml)
 - [Change log](#change-log)
+- [Python version support](#python-version-support)
 - [Author](#author)
 - [Travis](#travis)
 
@@ -930,10 +931,16 @@ If NO *rootname* has been provided and **data** is Object (not Array) then *attr
 
 If **data** is Array then *itemname* will be used as element name for its items.
 
+# Python version support
+
+==2.6
+==2.7
+>=3.3
+
 # Change log
 
-- 2.3.3 (2016-04-03):
-    - Python version 2.7 and >= 3.3 support
+- 2.3.5 (2016-04-03):
+    - Python version >= 3.3 support
 
 - 2.3:
     - New 'priority' option for nkit4py.var2xml()

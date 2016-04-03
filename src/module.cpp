@@ -23,19 +23,16 @@
 #include "nkit/var2xml.h"
 #include <string>
 
-#if ((PY_MAJOR_VERSION == 2) && (PY_MINOR_VERSION <=4))
-#define NKIT_PYTHON_OLDER_THEN_2_5
-#endif
-
-
 #if ((PY_MAJOR_VERSION == 2) && (PY_MINOR_VERSION <= 5))
 #define NKIT_PYTHON_OLDER_THEN_2_6
 #endif
 
+#if ((PY_MAJOR_VERSION == 2) && (PY_MINOR_VERSION == 6))
+#define NKIT_PYTHON_26
+#endif
+
 #if NKIT_PYTHON_OLDER_THEN_2_6
-#define NKIT_PYTHON_LONG_FROM_INT64(v) PyLong_FromLong(static_cast<long>(v))
-#else
-#define NKIT_PYTHON_LONG_FROM_INT64(v) PyLong_FromLongLong(v)
+#error "Python version older then 2.6 doesn not supported"
 #endif
 
 namespace nkit
@@ -185,7 +182,7 @@ namespace nkit
       int64_t i = !value.empty() ? NKIT_STRTOLL( value.c_str(), NULL, 10 ) : 0;
 
       Py_CLEAR(object_);
-      object_ = NKIT_PYTHON_LONG_FROM_INT64(i);
+      object_ = PyLong_FromLongLong(i);
       assert(object_);
     }
 
@@ -252,7 +249,7 @@ namespace nkit
     void InitAsDict()
     {
       Py_CLEAR(object_);
-      if (options_.ordered_dict_)
+      if (options_.ordered_dict_ && ordered_dict_)
         object_ = PyObject_CallObject(ordered_dict_, NULL);
       else
         object_ = PyDict_New();
@@ -293,7 +290,7 @@ namespace nkit
 
     void SetDictKeyValue( std::string const & key, type const & var )
     {
-      if (options_.ordered_dict_)
+      if (options_.ordered_dict_ && ordered_dict_)
       {
         PyObject * pkey;
         if (options_.unicode_)
@@ -1239,13 +1236,33 @@ MODULE_INIT_FUNC(nkit4py)
 
   nkit::ordered_dict_ =
       PyObject_GetAttrString(nkit::collections_module_, "OrderedDict");
-  assert(nkit::ordered_dict_);
-  Py_INCREF(nkit::ordered_dict_);
-
-  nkit::ordered_dict_set_item_ =
-        PyObject_GetAttrString(nkit::ordered_dict_, "__setitem__");
-  assert(nkit::ordered_dict_set_item_);
-  Py_INCREF(nkit::ordered_dict_set_item_);
+  if(nkit::ordered_dict_)
+  {
+    Py_INCREF(nkit::ordered_dict_);
+    nkit::ordered_dict_set_item_ =
+          PyObject_GetAttrString(nkit::ordered_dict_, "__setitem__");
+    assert(nkit::ordered_dict_set_item_);
+    Py_INCREF(nkit::ordered_dict_set_item_);
+  }
+  else
+  {
+    Py_DECREF(nkit::collections_module_);
+    nkit::collections_module_ = PyImport_ImportModule("ordereddict");
+    if (nkit::collections_module_)
+    {
+      Py_INCREF(nkit::collections_module_);
+      nkit::ordered_dict_ =
+          PyObject_GetAttrString(nkit::collections_module_, "OrderedDict");
+      if(nkit::ordered_dict_)
+      {
+        Py_INCREF(nkit::ordered_dict_);
+        nkit::ordered_dict_set_item_ =
+              PyObject_GetAttrString(nkit::ordered_dict_, "__setitem__");
+        assert(nkit::ordered_dict_set_item_);
+        Py_INCREF(nkit::ordered_dict_set_item_);
+      }
+    }
+  }
 
   PyDateTime_IMPORT;
 

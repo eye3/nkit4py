@@ -85,6 +85,12 @@ Usage
 
 See https://github.com/eye3/nkit4py
 
+Python version support
+======================
+==2.6
+==2.7
+>=3.3
+
 Author
 ======
 
