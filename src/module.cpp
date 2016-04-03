@@ -32,7 +32,7 @@
 #endif
 
 #if NKIT_PYTHON_OLDER_THEN_2_6
-#error "Python version older then 2.6 doesn not supported"
+#error "Python version older then 2.6 does not supported"
 #endif
 
 namespace nkit
