@@ -7,127 +7,7 @@ from datetime import *
 
 import os
 import sys
-import unittest
 
-
-# ------------------------------------------------------------------------------
-def to_json(v):
-    return json.dumps(v, indent=2, ensure_ascii=False, cls=DatetimeJSONEncoder)
-
-
-# ------------------------------------------------------------------------------
-def print_json(v):
-    print("-------------------------------------")
-    print(to_json(v))
-
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-xml_string = u"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<persons type="sample">
-    <person a="a" q="q" z="z">
-        <name>Jack</name>
-        <phone>+122233344550</phone>
-        <phone>+122233344551</phone>
-    </person>
-    <person>
-        <name>Boris</name>
-        <phone>+122233344553</phone>
-        <phone>+122233344554</phone>
-    </person>
-    any text
-</persons>"""
-
-options = {
-    "trim": True,
-    "ordered_dict": True
-}
-builder = AnyXml2VarBuilder(options)
-builder.feed(xml_string)
-result1 = builder.end()
-root_name1 = builder.root_name()
-
-print(root_name1)
-print(type(result1["person"][0]["$"]))
-print_json(result1)
-
-options = {
-    "rootname": "persons",
-    "encoding": "UTF-8",
-    "xmldec": {
-        "version": "1.0",
-        "standalone": True,
-    },
-    "priority": ["title",
-                 "link",
-                 "description",
-                 "pubDate",
-                 "language",
-                 "name",
-                 "phone"
-    ],
-    "pretty": {
-        "indent": "    ",
-        "newline": "\n",
-    },
-    "attrkey": "$",
-    "textkey": "_",
-    "unicode": True
-}
-
-tmp = var2xml(result1, options)
-
-if xml_string != tmp:
-    print(xml_string)
-    print(tmp)
-    print("Error #4.1")
-    sys.exit(1)
-
-
-options = {
-    "trim": True
-}
-builder = AnyXml2VarBuilder(options)
-builder.feed(tmp)
-result2 = builder.end()
-root_name2 = builder.root_name()
-print(root_name2)
-
-if result1 != result2:
-    print_json(result1)
-    print_json(result2)
-    print("Error #4.2")
-    sys.exit(1)
-
-if root_name1 != root_name2:
-    print_json(root_name1)
-    print_json(root_name2)
-    print("Error #4.3")
-    sys.exit(1)
-#sys.exit(0)
-
-# ------------------------------------------------------------------------------
-def make_pairs(context):
-    MAPPING_SUFFIX = "_mapping"
-    ETALON_SUFFIX = "_etalon"
-    context.update(globals())
-    etalons = {}
-    mappings = {}
-    for mapping_key, mapping in context.items():
-        if mapping_key.endswith(MAPPING_SUFFIX):
-            structure = mapping_key[: -1 * len(MAPPING_SUFFIX)]
-            etalon = context.get(structure + ETALON_SUFFIX)
-            if etalon:
-                etalons[structure] = etalon
-                mappings[structure] = mapping
-    return mappings, etalons
-
-
-# ------------------------------------------------------------------------------
-path = os.path.dirname(os.path.realpath(__file__))
-
-xml_path = path + "/data/sample.xml"
-f = open(xml_path, 'r')
-xml_string = f.read()
 
 # ------------------------------------------------------------------------------
 # Building a lists-of-strings from xml string
@@ -280,255 +160,398 @@ testing_new_object_creation_etalon = [
         }
     }
 ]
-# ------------------------------------------------------------------------------
-mappings, etalons = make_pairs({})
 
-builder = Xml2VarBuilder(mappings)
-builder.feed(xml_string)
-res = builder.end()
-
-counter = 0
-for mapping_name, etalon in etalons.items():
-    counter += 1
-    if res[mapping_name] != etalon:
-        print("ETALON of %s:" % mapping_name)
-        print_json(etalon)
-        print("RESULT of %s:" % mapping_name)
-        print_json(res[mapping_name])
-        print("Error #1.%d" % counter)
-        sys.exit(1)
 
 # ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-# Testing paths with '*'
+def to_json(v):
+    return json.dumps(v, indent=2, ensure_ascii=False, cls=DatetimeJSONEncoder)
 
-mapping = ["/person",
-           {
-               "/*": "string"
-           }
-]
-
-mapping_name = "testing_paths_with_star"
-
-options = {"trim": True}
-
-builder = Xml2VarBuilder(options, {mapping_name: mapping})
-builder.feed(xml_string)
-result = builder.end()
-result = result[mapping_name]
-
-etalon = [
-    {
-        "name": "Jack",
-        "photos": "",
-        "age": "33",
-        "married": "Yes",
-        "phone": "+122233344551",
-        "birthday": "Wed, 28 Mar 1979 12:13:14 +0300",
-        "address": "",
-        "empty": ""
-    },
-    {
-        "name": "Boris",
-        "photos": "",
-        "age": "34",
-        "married": "Yes",
-        "phone": "+122233344554",
-        "birthday": "Mon, 31 Aug 1970 02:03:04 +0300",
-        "address": "",
-        "empty": ""
-    }
-]
-
-if etalon != result:
-    print_json(etalon)
-    print_json(result)
-    print("Error #2.1")
-    sys.exit(1)
 
 # ------------------------------------------------------------------------------
-multi_mapping = {
-    "academy": {
-        "/academy/title": "string",
-        "/academy/link": "string"
-    },
-    "persons": ["/person", {
-        "/*": "string"
-    }]
-}
+def print_json(v):
+    print("-------------------------------------")
+    print(to_json(v))
 
-options = {"trim": True, "unicode": True}
 
-builder = Xml2VarBuilder(options, multi_mapping)
-builder.feed(xml_string)
-result = builder.end()
-academy = result["academy"]
-persons = result["persons"]
+def make_pairs(context):
+    MAPPING_SUFFIX = "_mapping"
+    ETALON_SUFFIX = "_etalon"
+    context.update(globals())
+    etalons = {}
+    mappings = {}
+    for mapping_key, mapping in context.items():
+        if mapping_key.endswith(MAPPING_SUFFIX):
+            structure = mapping_key[: -1 * len(MAPPING_SUFFIX)]
+            etalon = context.get(structure + ETALON_SUFFIX)
+            if etalon:
+                etalons[structure] = etalon
+                mappings[structure] = mapping
+    return mappings, etalons
 
-academy_etalon = {
-    "link": "http://www.damsdelhi.com/dams.php",
-    "title": "Delhi Academy Of Medical Sciences"
-}
 
-persons_etalon = [
-    {
-        "name": "Jack",
-        "photos": "",
-        "age": "33",
-        "married": "Yes",
-        "phone": "+122233344551",
-        "birthday": "Wed, 28 Mar 1979 12:13:14 +0300",
-        "address": "",
-        "empty": ""
-    },
-    {
-        "name": "Boris",
-        "photos": "",
-        "age": "34",
-        "married": "Yes",
-        "phone": "+122233344554",
-        "birthday": "Mon, 31 Aug 1970 02:03:04 +0300",
-        "address": "",
-        "empty": ""
-    }
-]
-
-if academy_etalon != academy:
-    print_json(academy)
-    print_json(academy_etalon)
-    print("Error #2.2")
-    sys.exit(1)
-
-if persons_etalon != persons:
-    print_json(persons)
-    print_json(persons_etalon)
-    print("Error #2.3")
-    sys.exit(1)
+def test_all_at_once():
+    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
+    xml_string = u"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<persons type="sample">
+    <person a="a" q="q" z="z">
+        <name>Jack</name>
+        <phone>+122233344550</phone>
+        <phone>+122233344551</phone>
+    </person>
+    <person>
+        <name>Boris</name>
+        <phone>+122233344553</phone>
+        <phone>+122233344554</phone>
+    </person>
+    any text
+</persons>"""
     
-if builder.get("persons") != persons:
-    print_json(persons)
-    print_json(builder.get("persons"))
-    print("Error #2.4")
-    sys.exit(1)
-
-# -------------------------------------------------------------------------------
-options = {"attrkey": "$", "unicode": True}
-
-mapping = ["/person",
-    {
-        "/name": "string",
-        "/married": {"/ -> Now": "string"}
+    options = {
+        "trim": True,
+        "ordered_dict": True
     }
-]
-
-mappings = {"persons": mapping}
-
-builder = Xml2VarBuilder(options, mappings)
-builder.feed(xml_string)
-result = builder.end()
-persons = result["persons"]
-
-persons_etalon = [
-  {
-    "married": {
-      "Now": "Yes",
-      "$": {
-        "firstTime": "No"
-      }
-    },
-    "name": "Jack"
-  },
-  {
-    "married": {
-      "Now": "Yes",
-      "$": {
-        "firstTime": "Yes"
-      }
-    },
-    "name": "Boris"
-  }
-]
-
-if persons_etalon != persons:
-    print_json(persons)
-    print_json(persons_etalon)
-    print("Error #3.1")
-    sys.exit(1)
-
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-data = {
-    "$": {"p1": "в1&v2\"'", "p2": "v2"},
-    "_": "Hello(Привет) world(мир)",
-    "int_число": 1,
-    "float": 1.123456789,
-    "cdata": "text < > & \" '",
-    "list": [[1], 2, 3],
-    "datetime": datetime.now(),
-    "dict": {
-        "$": {"a1": "V1", "a2": "V2"},
-        "int": 1,
-        "float": 1.11234567891234,
-        "sub_string": "text < > & \" '",
-        "list": [1 << 2 << 3],
-        "_": "Hello(Привет) world(мир)"
+    builder = AnyXml2VarBuilder(options)
+    builder.feed(xml_string)
+    result1 = builder.end()
+    root_name1 = builder.root_name()
+    
+#     print(root_name1)
+#     print(type(result1["person"][0]["$"]))
+#     print_json(result1)
+    
+    options = {
+        "rootname": "persons",
+        "encoding": "UTF-8",
+        "xmldec": {
+            "version": "1.0",
+            "standalone": True,
+        },
+        "priority": ["title",
+                     "link",
+                     "description",
+                     "pubDate",
+                     "language",
+                     "name",
+                     "phone"
+        ],
+        "pretty": {
+            "indent": "    ",
+            "newline": "\n",
+        },
+        "attrkey": "$",
+        "textkey": "_",
+        "unicode": True
     }
-}
-
-options = {
-    "rootname": "ROOT",
-    "itemname": "item",
-    "encoding": "UTF-8",
-    "xmldec": {
-        "version": "1.0",
-        "standalone": True
-    },
-    "pretty": {
-        "indent": "  ",
-        "newline": "\n",
-    },
-    "attrkey": "$",
-    "textkey": "_",
-    "cdata": ["cdata"],
-    "float_precision": 10,
-    "date_time_format": "%Y-%m-%d %H:%M:%S",
-    "unicode": True
-}
-
-print(var2xml(data, options))
-
-print(var2xml([], options))
-
+    
+    tmp = var2xml(result1, options)
+    
+    if xml_string != tmp:
+        print(xml_string)
+        print(tmp)
+        raise Exception("Error #4.1")
+    
+    
+    options = {
+        "trim": True
+    }
+    builder = AnyXml2VarBuilder(options)
+    builder.feed(tmp)
+    result2 = builder.end()
+    root_name2 = builder.root_name()
+    print(root_name2)
+    
+    if result1 != result2:
+        print_json(result1)
+        print_json(result2)
+        raise Exception("Error #4.2")
+    
+    if root_name1 != root_name2:
+        print_json(root_name1)
+        print_json(root_name2)
+        raise Exception("Error #4.3")
+    
+    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
+    path = os.path.dirname(os.path.realpath(__file__))
+    
+    xml_path = path + "/data/sample.xml"
+    f = open(xml_path, 'r')
+    xml_string = f.read()
+    f.close()
+    
+    # ------------------------------------------------------------------------------
+    mappings, etalons = make_pairs({})
+    
+    builder = Xml2VarBuilder(mappings)
+    builder.feed(xml_string)
+    res = builder.end()
+    
+    counter = 0
+    for mapping_name, etalon in etalons.items():
+        counter += 1
+        if res[mapping_name] != etalon:
+            print("ETALON of %s:" % mapping_name)
+            print_json(etalon)
+            print("RESULT of %s:" % mapping_name)
+            print_json(res[mapping_name])
+            raise Exception("Error #1.%d" % counter)
+    
+    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
+    # Testing paths with '*'
+    
+    mapping = ["/person",
+               {
+                   "/*": "string"
+               }
+    ]
+    
+    mapping_name = "testing_paths_with_star"
+    
+    options = {"trim": True}
+    
+    builder = Xml2VarBuilder(options, {mapping_name: mapping})
+    builder.feed(xml_string)
+    result = builder.end()
+    result = result[mapping_name]
+    
+    etalon = [
+        {
+            "name": "Jack",
+            "photos": "",
+            "age": "33",
+            "married": "Yes",
+            "phone": "+122233344551",
+            "birthday": "Wed, 28 Mar 1979 12:13:14 +0300",
+            "address": "",
+            "empty": ""
+        },
+        {
+            "name": "Boris",
+            "photos": "",
+            "age": "34",
+            "married": "Yes",
+            "phone": "+122233344554",
+            "birthday": "Mon, 31 Aug 1970 02:03:04 +0300",
+            "address": "",
+            "empty": ""
+        }
+    ]
+    
+    if etalon != result:
+        print_json(etalon)
+        print_json(result)
+        raise Exception("Error #2.1")
+    
+    # ------------------------------------------------------------------------------
+    multi_mapping = {
+        "academy": {
+            "/academy/title": "string",
+            "/academy/link": "string"
+        },
+        "persons": ["/person", {
+            "/*": "string"
+        }]
+    }
+    
+    options = {"trim": True, "unicode": True}
+    
+    builder = Xml2VarBuilder(options, multi_mapping)
+    builder.feed(xml_string)
+    result = builder.end()
+    academy = result["academy"]
+    persons = result["persons"]
+    
+    academy_etalon = {
+        "link": "http://www.damsdelhi.com/dams.php",
+        "title": "Delhi Academy Of Medical Sciences"
+    }
+    
+    persons_etalon = [
+        {
+            "name": "Jack",
+            "photos": "",
+            "age": "33",
+            "married": "Yes",
+            "phone": "+122233344551",
+            "birthday": "Wed, 28 Mar 1979 12:13:14 +0300",
+            "address": "",
+            "empty": ""
+        },
+        {
+            "name": "Boris",
+            "photos": "",
+            "age": "34",
+            "married": "Yes",
+            "phone": "+122233344554",
+            "birthday": "Mon, 31 Aug 1970 02:03:04 +0300",
+            "address": "",
+            "empty": ""
+        }
+    ]
+    
+    if academy_etalon != academy:
+        print_json(academy)
+        print_json(academy_etalon)
+        raise Exception("Error #2.2")
+    
+    if persons_etalon != persons:
+        print_json(persons)
+        print_json(persons_etalon)
+        raise Exception("Error #2.3")
+        
+    if builder.get("persons") != persons:
+        print_json(persons)
+        print_json(builder.get("persons"))
+        raise Exception("Error #2.4")
+    
+    # -------------------------------------------------------------------------------
+    options = {"attrkey": "$", "unicode": True}
+    
+    mapping = ["/person",
+        {
+            "/name": "string",
+            "/married": {"/ -> Now": "string"}
+        }
+    ]
+    
+    mappings = {"persons": mapping}
+    
+    builder = Xml2VarBuilder(options, mappings)
+    builder.feed(xml_string)
+    result = builder.end()
+    persons = result["persons"]
+    
+    persons_etalon = [
+      {
+        "married": {
+          "Now": "Yes",
+          "$": {
+            "firstTime": "No"
+          }
+        },
+        "name": "Jack"
+      },
+      {
+        "married": {
+          "Now": "Yes",
+          "$": {
+            "firstTime": "Yes"
+          }
+        },
+        "name": "Boris"
+      }
+    ]
+    
+    if persons_etalon != persons:
+        print_json(persons)
+        print_json(persons_etalon)
+        raise Exception("Error #3.1")
+    
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-import collections
-data = collections.OrderedDict()
-#data = {}
-data["2"] = "2"
-data["1"] = "1"
-data["4"] = "4"
-data["3"] = "3"
+def test_var2xml():
+    data = {
+        "$": {"p1": "в1&v2\"'", "p2": "v2"},
+        "_": "Hello(Привет) world(мир)",
+        "int_число": 1,
+        "float": 1.123456789,
+        "cdata": "text < > & \" '",
+        "list": [[1], 2, 3],
+        "datetime": datetime.now(),
+        "dict": {
+            "$": {"a1": "V1", "a2": "V2"},
+            "int": 1,
+            "float": 1.11234567891234,
+            "sub_string": "text < > & \" '",
+            "list": [1 << 2 << 3],
+            "_": "Hello(Привет) world(мир)"
+        }
+    }
+    
+    options = {
+        "rootname": "ROOT",
+        "itemname": "item",
+        "encoding": "UTF-8",
+        "xmldec": {
+            "version": "1.0",
+            "standalone": True
+        },
+        "pretty": {
+            "indent": "  ",
+            "newline": "\n",
+        },
+        "attrkey": "$",
+        "textkey": "_",
+        "cdata": ["cdata"],
+        "float_precision": 10,
+        "date_time_format": "%Y-%m-%d %H:%M:%S",
+        "unicode": True
+    }
+    
+    etalon = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ROOT" p1="в1&amp;v2&quot;&apos;" p2="v2>
+  <datetime>2016-04-03 19:03:43</datetime>
+  <dict a2="V2" a1="V1">
+    <int>1</int>
+    <sub_string>text &lt; &gt; &amp; &quot; &apos;</sub_string>
+    <list>32</list>
+    <float>1.1123456789</float>
+    Hello(Привет) world(мир)
+  </dict>
+  <list>
+    <item>1</item>
+  </list>
+  <list>2</list>
+  <list>3</list>
+  <cdata><![CDATA[text < > & " ']]></cdata>
+  <float>1.1234567890</float>
+  <int_число>1</int_число>
+  Hello(Привет) world(мир)
+</ROOT>"""
 
-print(var2xml(data, options))
+    result = (var2xml(data, options))
+    print(result)
+#     if result != etalon:
+#         print(result)
+#         print(etalon)
+#         raise Exception("Error #6.1")
+    
+    etalon = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ROOT></ROOT>"""
 
-print("ok")
+    result = var2xml([], options)
+    if result != etalon:
+        print(result)
+        print(etalon)
+        raise Exception("Error #6.2")
+    
+    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
+    etalon = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ROOT>
+  <2>2</2>
+  <1>1</1>
+  <4>4</4>
+  <3>3</3>
+</ROOT>"""
 
-class TestStringMethods(unittest.TestCase):
+    import collections
+    data = collections.OrderedDict()
+    #data = {}
+    data["2"] = "2"
+    data["1"] = "1"
+    data["4"] = "4"
+    data["3"] = "3"
+    
+    result = (var2xml(data, options))
+    if result != etalon:
+        print(result)
+        print(etalon)
+        raise Exception("Error #6.3")
 
-  def test_upper(self):
-      self.assertEqual('foo'.upper(), 'FOO')
-
-  def test_isupper(self):
-      self.assertTrue('FOO'.isupper())
-      self.assertFalse('Foo'.isupper())
-
-  def test_split(self):
-      s = 'hello world'
-      self.assertEqual(s.split(), ['hello', 'world'])
-      # check that s.split fails when the separator is not a string
-      with self.assertRaises(TypeError):
-          s.split(2)
 
 if __name__ == '__main__':
     unittest.main()
-#     sys.exit(0)
+#     test_var2xml()
