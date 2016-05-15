@@ -483,7 +483,6 @@ def test_xml2var_attribute_as_key():
     builder.feed(attribute_as_key_sample)
     result = builder.end()
     result = result["main"]
-    print result
     assert result[0]["ARTIST"] == "Bob Dylan"
     assert result[1]["YEAR"] == "1988"
     
