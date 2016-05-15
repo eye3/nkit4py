@@ -13,6 +13,16 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
+NKIT_TEST_DATA_PATH = os.path.dirname(os.path.realpath(__file__))
+NKIT_TEST_DATA_PATH = os.path.join(NKIT_TEST_DATA_PATH, '../deps/nkit/test/data')
+NKIT_TEST_DATA_PATH = os.path.normpath(NKIT_TEST_DATA_PATH)
+
+
+def read_file_text(file_path):
+    f = open(file_path, 'r')
+    text = f.read()
+    f.close()
+    return text
 
 # ------------------------------------------------------------------------------
 # Building a lists-of-strings from xml string
@@ -280,10 +290,11 @@ def test_all_at_once():
     # ------------------------------------------------------------------------------
     path = os.path.dirname(os.path.realpath(__file__))
     
-    xml_path = path + "/data/sample.xml"
-    f = open(xml_path, 'r')
-    xml_string = f.read()
-    f.close()
+    xml_string = read_file_text(path + "/data/sample.xml")
+#     xml_path = path + "/data/sample.xml"
+#     f = open(xml_path, 'r')
+#     xml_string = f.read()
+#     f.close()
     
     # ------------------------------------------------------------------------------
     mappings, etalons = make_pairs({})
@@ -453,6 +464,28 @@ def test_all_at_once():
         print_json(persons)
         print_json(persons_etalon)
         raise Exception("Error #3.1")
+    
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+def test_xml2var_attribute_as_key():
+    attribute_as_key_sample = os.path.join(NKIT_TEST_DATA_PATH, 'attribute_as_key_sample.xml')
+    attribute_as_key_sample = read_file_text(attribute_as_key_sample)
+    
+    attribute_as_key_mapping = os.path.join(NKIT_TEST_DATA_PATH, 'attribute_as_key_mapping.json')
+    attribute_as_key_mapping = read_file_text(attribute_as_key_mapping)
+    attribute_as_key_mapping = json.loads(attribute_as_key_mapping)
+    
+    mappings = {"main": attribute_as_key_mapping}
+    
+    options = {"attrkey": "$", "unicode": True}
+
+    builder = Xml2VarBuilder(options, mappings)
+    builder.feed(attribute_as_key_sample)
+    result = builder.end()
+    result = result["main"]
+    print result
+    assert result[0]["ARTIST"] == "Bob Dylan"
+    assert result[1]["YEAR"] == "1988"
     
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
