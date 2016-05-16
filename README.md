@@ -1017,7 +1017,7 @@ If **data** is Array then *itemname* will be used as element name for its items.
 # Change log
 
 - 2.4.0 (2016-05-16):
-  - Now we can use XML attribute values to generate Object keys
+  - Now we can use XML attribute values to generate Dict keys
 
 - 2.3.6 (2016-04-03):
     - Python version >= 3.3 support
