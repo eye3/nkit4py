@@ -1,32 +1,34 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**
 
-- [Introduction](#introduction)
-- [Installation](#installation)
-  - [Requirements](#requirements)
-  - [On Linux and Mac OS](#on-linux-and-mac-os)
-  - [On Windows](#on-windows)
-- [XML to Python data conversion](#xml-to-python-data-conversion)
-  - [Quick start without mappings](#quick-start-without-mappings)
-  - [Getting started with mappings](#getting-started-with-mappings)
-  - [Building simple object from xml string (last 'person' xml element will be used)](#building-simple-object-from-xml-string-last-person-xml-element-will-be-used)
-  - [Building list-of-objects from xml string](#building-list-of-objects-from-xml-string)
-  - [Building list-of-objects-with-lists from xml string](#building-list-of-objects-with-lists-from-xml-string)
-  - [Creating keys in object for non-existent xml elements](#creating-keys-in-object-for-non-existent-xml-elements)
-  - [Building data structures from big XML source, reading it chunk by chunk](#building-data-structures-from-big-xml-source-reading-it-chunk-by-chunk)
-  - [Options](#options)
-    - ['attrkey' option](#attrkey-option)
-  - [Notes](#notes)
-- [Python data to XML conversion](#python-data-to-xml-conversion)
-  - [Quick start](#quick-start)
-  - [Options for var2xml](#options-for-var2xml)
-- [Change log](#change-log)
-- [Python version support](#python-version-support)
-- [Author](#author)
-- [Travis](#travis)
 
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+<!-- toc -->
+
+* [Introduction](#introduction)
+* [Installation](#installation)
+  * [Requirements](#requirements)
+  * [On Linux and Mac OS](#on-linux-and-mac-os)
+  * [On Windows](#on-windows)
+* [XML to Python data conversion](#xml-to-python-data-conversion)
+  * [Quick start without mappings](#quick-start-without-mappings)
+  * [Getting started with mappings](#getting-started-with-mappings)
+  * [Building simple object from xml string (last 'person' xml element will be used)](#building-simple-object-from-xml-string-last-person-xml-element-will-be-used)
+  * [Building list-of-objects from xml string](#building-list-of-objects-from-xml-string)
+  * [Building list-of-objects-with-lists from xml string](#building-list-of-objects-with-lists-from-xml-string)
+  * [Creating keys in object for non-existent xml elements](#creating-keys-in-object-for-non-existent-xml-elements)
+  * [Using attribute values to generate Dict keys](#using-attribute-values-to-generate-dict-keys)
+  * [Building data structures from big XML source, reading it chunk by chunk](#building-data-structures-from-big-xml-source-reading-it-chunk-by-chunk)
+  * [Options](#options)
+    * ['attrkey' option](#attrkey-option)
+  * [Notes](#notes)
+* [Python data to XML conversion](#python-data-to-xml-conversion)
+  * [Quick start](#quick-start)
+  * [Options for var2xml](#options-for-var2xml)
+* [Python version support](#python-version-support)
+* [Change log](#change-log)
+* [Author](#author)
+* [Travis](#travis)
+
+<!-- toc stop -->
+
 
 
 # Introduction
@@ -82,6 +84,7 @@ Module supports not only native Expat XML encodings, but also many others
 - Define format for Date objects
 - Define representation for *True* and *False* values
 - Explicitly define order in which DICT keys will be printed to XML text
+- Define type o result: unicode or stringf
 
 
 # Installation
@@ -641,7 +644,81 @@ Value of persons:
 ]
 ```
 
-	
+## Using attribute values to generate Dict keys
+
+Suppose, we have this XML:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<GTSResponse>
+    <Record>
+        <Field name="TITLE">Empire Burlesque</Field>
+        <Field name="ARTIST">Bob Dylan</Field>
+        <Field name="COUNTRY">USA</Field>
+        <Field name="COMPANY">Columbia</Field>
+        <Field name="PRICE">10.90</Field>
+        <Field name="YEAR">1985</Field>
+    </Record>
+    <Record>
+        <Field name="TITLE">Hide your heart</Field>
+        <Field name="ARTIST">Bonnie Tyler</Field>
+        <Field name="COUNTRY">UK</Field>
+        <Field name="COMPANY">CBS Records</Field>
+        <Field name="PRICE">9.90</Field>
+        <Field name="YEAR">1988</Field>
+    </Record>
+</GTSResponse>
+```
+
+And we want to get such structure:
+
+```json
+{ "records": [
+    { "TITLE": "Empire Burlesque",
+      "ARTIST": "Bob Dylan",
+      "COUNTRY": "USA",
+      "COMPANY": "Columbia",
+      "PRICE": "10.90",
+      "YEAR": "1985"
+    },
+    { "TITLE": "Hide your heart",
+      "ARTIST": "Bonnie Tyler",
+      "COUNTRY": "UK",
+      "COMPANY": "CBS Records",
+      "PRICE": "9.90",
+      "YEAR": "1988"
+    }
+  ]
+}
+```
+
+We can do it with this mapping:
+
+
+```json
+["/Record", {"/Field -> @name": "string"} ]
+```
+
+Here object key definition "/Field -> @name" contain key alias '@name',
+that means that module will use 'name' attribute values for Dict keys.
+
+Full example:
+
+```python
+import nkit4py
+
+mapping = ["/Record", {"/Field -> @name": "string"} ]
+
+mappings = {"main": mapping}
+
+builder = Xml2VarBuilder(mappings)
+builder.feed(xml_string)
+result = builder.end()
+
+result = result["main"]
+
+```
+
 ## Building data structures from big XML source, reading it chunk by chunk
 
 This example requires Tornado server to be installed (pip install tornado)
@@ -939,13 +1016,16 @@ If **data** is Array then *itemname* will be used as element name for its items.
 
 # Change log
 
+- 2.4.1 (2016-05-16):
+  - Now we can use XML attribute values to generate Object keys
+
 - 2.3.6 (2016-04-03):
     - Python version >= 3.3 support
 
 - 2.3:
-    - New 'priority' option for nkit4py.var2xml()
+  - New 'priority' option for nkit4py.var2xml()
 	- New 'unicode' option for nkit4py.var2xml()
-    - New class AnyXml2VarBuilder for converting XML without mapping
+  - New class AnyXml2VarBuilder for converting XML without mapping
 	- AnyXml2VarBuilder.root_name() method
 	- Support of compatible python structures - any kind of sequencies and dics
 	- Support of ordered dicts
@@ -976,4 +1056,3 @@ Any feedback or pull request are welcome!
 # Travis
 
 [![Build Status](https://travis-ci.org/eye3/nkit4py.svg?branch=master)](https://travis-ci.org/eye3/nkit4py)
-

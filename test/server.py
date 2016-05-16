@@ -123,7 +123,7 @@ class Var2XmlHandler(RequestHandler):
     def get(self):
         self.set_header("Content-Type", "text/xml; charset=" + Var2XmlHandler.ENCODING)
         bytes = var2xml(Var2XmlHandler.DATA, Var2XmlHandler.OPTIONS)
-        print(type(bytes))
+#         print(type(bytes))
         self.write(bytes)
 
 
