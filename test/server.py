@@ -18,11 +18,34 @@ else:
     SERVER = http.server
 from datetime import *
 
-path = os.path.dirname(os.path.realpath(__file__))
 
-xml_path = path + "/data/sample.xml"
-f2 = open(xml_path, 'r')
-xml = f2.read()
+def read_file_text(file_path):
+    f = open(file_path, 'r')
+    text = f.read()
+    f.close()
+    return text
+
+
+path = os.path.dirname(os.path.realpath(__file__))
+NKIT_TEST_DATA_PATH = os.path.join(path, '../deps/nkit/test/data')
+NKIT_TEST_DATA_PATH = os.path.normpath(NKIT_TEST_DATA_PATH)
+
+attribute_as_key_sample = os.path.join(NKIT_TEST_DATA_PATH, 'attribute_as_key_sample.xml')
+attribute_as_key_sample = read_file_text(attribute_as_key_sample)
+
+attribute_as_key_mapping = os.path.join(NKIT_TEST_DATA_PATH, 'attribute_as_key_mapping.json')
+attribute_as_key_mapping = read_file_text(attribute_as_key_mapping)
+attribute_as_key_mapping = json.loads(attribute_as_key_mapping)
+attribute_as_key_mapping = ["/Record", {"/Field -> @name": {
+                                            "/ -> value": {
+                                                "/ -> value": "string"
+                                                }
+                                            }
+                                       }
+                           ]
+attribute_as_key_mappings = {"": attribute_as_key_mapping}
+
+xml = read_file_text(path + "/data/sample.xml")
 
 mapping = ["/person",
     {
@@ -33,19 +56,29 @@ mapping = ["/person",
     }
 ]
 
-mappings = {"1": mapping}
+mappings = {"": mapping}
 
 
 def xml2var():
     gen = Xml2VarBuilder(mappings)
     gen.feed(xml)
-    target = gen.end()
+    target = gen.end()[""]
     return json.dumps(target
                       , indent=2
                       , ensure_ascii=False
                       , cls= DatetimeJSONEncoder
     )
 
+
+def xml2var_attribute_as_key():
+    gen = Xml2VarBuilder(attribute_as_key_mappings)
+    gen.feed(attribute_as_key_sample)
+    target = gen.end()[""]
+    return json.dumps(target
+                      , indent=2
+                      , ensure_ascii=False
+                      , cls= DatetimeJSONEncoder
+    )
 
 def anyxml2var():
     options = {
@@ -67,6 +100,12 @@ class Xml2VarHandler(RequestHandler):
     def get(self):
         self.set_header("Content-Type", "application/json; charset=utf-8")
         self.write(xml2var())
+
+
+class Xml2VarAttributeAsKeyHandler(RequestHandler):
+    def get(self):
+        self.set_header("Content-Type", "application/json; charset=utf-8")
+        self.write(xml2var_attribute_as_key())
 
 
 class AnyXml2VarHandler(RequestHandler):
@@ -156,6 +195,7 @@ def run_tornado():
         tornado.web.url(r"/xml2var", Xml2VarHandler),
         tornado.web.url(r"/anyxml2var", AnyXml2VarHandler),
         tornado.web.url(r"/var2xml", Var2XmlHandler),
+        tornado.web.url(r"/xml2var_attribute_as_key", Xml2VarAttributeAsKeyHandler),
         tornado.web.url(r"/1/", Handler1),
         tornado.web.url(r"/2/", Handler2),
         tornado.web.url(r"/redirect/", RedirectHandler)
